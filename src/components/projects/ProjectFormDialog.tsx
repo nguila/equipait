@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { departments, resources, type Project, type ProjectStatus, type StrategicCategory, type Priority } from "@/data/mockData";
 
 interface ProjectFormDialogProps {
@@ -23,8 +27,8 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
     category: "" as StrategicCategory | "",
     priority: "" as Priority | "",
     status: "planeado" as ProjectStatus,
-    startDate: "",
-    endDate: "",
+    startDate: undefined as Date | undefined,
+    endDate: undefined as Date | undefined,
     managerId: "",
     budget: "",
   });
@@ -43,8 +47,8 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
       category: form.category as StrategicCategory,
       priority: form.priority as Priority,
       status: form.status,
-      startDate: form.startDate,
-      endDate: form.endDate,
+      startDate: form.startDate ? format(form.startDate, "yyyy-MM-dd") : "",
+      endDate: form.endDate ? format(form.endDate, "yyyy-MM-dd") : "",
       managerId: form.managerId,
       budget: form.budget ? Number(form.budget) : undefined,
       progress: 0,
@@ -53,7 +57,7 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
     };
 
     onAdd(newProject);
-    setForm({ name: "", code: "", description: "", departmentId: "", sponsorDepartmentId: "", category: "", priority: "", status: "planeado", startDate: "", endDate: "", managerId: "", budget: "" });
+    setForm({ name: "", code: "", description: "", departmentId: "", sponsorDepartmentId: "", category: "", priority: "", status: "planeado", startDate: undefined, endDate: undefined, managerId: "", budget: "" });
     setOpen(false);
   };
 
@@ -146,12 +150,32 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="proj-start">Data Início *</Label>
-              <Input id="proj-start" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
+              <Label>Data Início *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.startDate ? format(form.startDate, "dd MMM yyyy") : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.startDate} onSelect={(date) => setForm({ ...form, startDate: date })} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="proj-end">Data Fim *</Label>
-              <Input id="proj-end" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required />
+              <Label>Data Fim *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.endDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.endDate ? format(form.endDate, "dd MMM yyyy") : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.endDate} onSelect={(date) => setForm({ ...form, endDate: date })} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 

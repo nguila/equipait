@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { departments, type Vehicle } from "@/data/mockData";
 
 interface VehicleFormDialogProps {
@@ -23,8 +27,8 @@ const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
     status: "operacional" as Vehicle["status"],
     location: "",
     departmentId: "",
-    nextMaintenance: "",
-    insuranceExpiry: "",
+    nextMaintenance: undefined as Date | undefined,
+    insuranceExpiry: undefined as Date | undefined,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,12 +46,12 @@ const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
       status: form.status,
       location: form.location.trim() || "Sede",
       departmentId: form.departmentId,
-      nextMaintenance: form.nextMaintenance || undefined,
-      insuranceExpiry: form.insuranceExpiry || undefined,
+      nextMaintenance: form.nextMaintenance ? format(form.nextMaintenance, "yyyy-MM-dd") : undefined,
+      insuranceExpiry: form.insuranceExpiry ? format(form.insuranceExpiry, "yyyy-MM-dd") : undefined,
     };
 
     onAdd(newVehicle);
-    setForm({ plate: "", brand: "", model: "", type: "", year: "", mileage: "", status: "operacional", location: "", departmentId: "", nextMaintenance: "", insuranceExpiry: "" });
+    setForm({ plate: "", brand: "", model: "", type: "", year: "", mileage: "", status: "operacional", location: "", departmentId: "", nextMaintenance: undefined, insuranceExpiry: undefined });
     setOpen(false);
   };
 
@@ -119,12 +123,32 @@ const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="v-maint">Próxima Manutenção</Label>
-              <Input id="v-maint" type="date" value={form.nextMaintenance} onChange={(e) => setForm({ ...form, nextMaintenance: e.target.value })} />
+              <Label>Próxima Manutenção</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.nextMaintenance && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.nextMaintenance ? format(form.nextMaintenance, "dd MMM yyyy") : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.nextMaintenance} onSelect={(date) => setForm({ ...form, nextMaintenance: date })} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="v-insur">Expiração Seguro</Label>
-              <Input id="v-insur" type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
+              <Label>Expiração Seguro</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.insuranceExpiry && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.insuranceExpiry ? format(form.insuranceExpiry, "dd MMM yyyy") : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.insuranceExpiry} onSelect={(date) => setForm({ ...form, insuranceExpiry: date })} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
