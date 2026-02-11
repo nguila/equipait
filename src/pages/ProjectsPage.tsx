@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { projects, departments, tasks, resources } from "@/data/mockData";
+import { projects, departments, tasks, resources, type Task } from "@/data/mockData";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderKanban, List, LayoutGrid, ChevronRight } from "lucide-react";
-
-type ViewMode = "list" | "kanban";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, GanttChart } from "lucide-react";
+import TaskListView from "@/components/projects/TaskListView";
+import TaskKanbanView from "@/components/projects/TaskKanbanView";
+import TaskTimelineView from "@/components/projects/TaskTimelineView";
 
 const ProjectsPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deptFilter, setDeptFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   const filtered = projects.filter((p) => {
@@ -22,22 +23,14 @@ const ProjectsPage = () => {
   const selectedProjectData = selectedProject ? projects.find((p) => p.id === selectedProject) : null;
   const projectTasks = selectedProject ? tasks.filter((t) => t.projectId === selectedProject) : [];
 
-  const kanbanColumns = [
-    { key: "por_iniciar", label: "Por Iniciar" },
-    { key: "em_execucao", label: "Em Execução" },
-    { key: "em_revisao", label: "Em Revisão" },
-    { key: "concluida", label: "Concluída" },
-  ];
-
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Projetos</h1>
-          <p className="text-sm text-muted-foreground">Portefólio de projetos da organização</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Projetos</h1>
+        <p className="text-sm text-muted-foreground">Portefólio de projetos da organização</p>
       </div>
 
+      {/* Filters */}
       <div className="flex items-center gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-40 h-9 text-sm">
@@ -63,23 +56,10 @@ const ProjectsPage = () => {
             ))}
           </SelectContent>
         </Select>
-        <div className="ml-auto flex items-center gap-1 rounded-lg border border-border bg-card p-0.5">
-          <button
-            onClick={() => { setViewMode("list"); setSelectedProject(null); }}
-            className={`rounded-md p-1.5 ${viewMode === "list" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <List className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => { setViewMode("kanban"); setSelectedProject(null); }}
-            className={`rounded-md p-1.5 ${viewMode === "kanban" ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-        </div>
       </div>
 
-      {viewMode === "list" && !selectedProject && (
+      {/* Project Selection or Detail */}
+      {!selectedProject ? (
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <table className="w-full">
             <thead>
@@ -127,16 +107,16 @@ const ProjectsPage = () => {
             </tbody>
           </table>
         </div>
-      )}
-
-      {viewMode === "list" && selectedProject && selectedProjectData && (
+      ) : selectedProjectData ? (
         <div className="space-y-4">
           <button
             onClick={() => setSelectedProject(null)}
             className="flex items-center gap-1 text-sm text-primary hover:underline"
           >
-            ← Voltar à lista
+            ← Voltar à lista de projetos
           </button>
+
+          {/* Project Header Card */}
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -163,89 +143,34 @@ const ProjectsPage = () => {
             </div>
           </div>
 
-          <h3 className="text-sm font-semibold text-foreground">Tarefas ({projectTasks.length})</h3>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tarefa</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Atribuído</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prioridade</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Horas</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prazo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {projectTasks.map((task) => {
-                  const assignee = resources.find((r) => r.id === task.assigneeId);
-                  return (
-                    <tr key={task.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-3.5 text-sm font-medium text-card-foreground">{task.title}</td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{assignee?.name || "—"}</td>
-                      <td className="px-5 py-3.5"><StatusBadge status={task.status} /></td>
-                      <td className="px-5 py-3.5"><StatusBadge status={task.priority} /></td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{task.hoursLogged}/{task.hoursEstimated}h</td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{new Date(task.endDate).toLocaleDateString("pt-PT")}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+          {/* Task Views with Tabs */}
+          <Tabs defaultValue="list" className="space-y-4">
+            <TabsList className="bg-muted/60 p-1">
+              <TabsTrigger value="list" className="gap-1.5 text-xs">
+                <List className="h-4 w-4" /> Lista
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="gap-1.5 text-xs">
+                <LayoutGrid className="h-4 w-4" /> Kanban
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="gap-1.5 text-xs">
+                <ClockIcon className="h-4 w-4" /> Timeline
+              </TabsTrigger>
+            </TabsList>
 
-      {viewMode === "kanban" && (
-        <div>
-          <div className="mb-3">
-            <Select value={selectedProject || ""} onValueChange={(v) => setSelectedProject(v || null)}>
-              <SelectTrigger className="w-64 h-9 text-sm">
-                <SelectValue placeholder="Selecione um projeto" />
-              </SelectTrigger>
-              <SelectContent>
-                {filtered.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedProject ? (
-            <div className="grid grid-cols-4 gap-4">
-              {kanbanColumns.map((col) => {
-                const colTasks = projectTasks.filter((t) => t.status === col.key);
-                return (
-                  <div key={col.key} className="rounded-xl bg-muted/50 p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{col.label}</h3>
-                      <span className="text-xs font-medium text-muted-foreground">{colTasks.length}</span>
-                    </div>
-                    <div className="space-y-2">
-                      {colTasks.map((task) => {
-                        const assignee = resources.find((r) => r.id === task.assigneeId);
-                        return (
-                          <div key={task.id} className="rounded-lg border border-border bg-card p-3 hover-lift cursor-pointer">
-                            <p className="text-sm font-medium text-card-foreground">{task.title}</p>
-                            <div className="mt-2 flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground">{assignee?.name}</span>
-                              <StatusBadge status={task.priority} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {colTasks.length === 0 && (
-                        <p className="text-xs text-muted-foreground text-center py-4">Sem tarefas</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Selecione um projeto para ver as tarefas em Kanban.</p>
-          )}
+            <TabsContent value="list">
+              <TaskListView project={selectedProjectData} tasks={projectTasks} />
+            </TabsContent>
+
+            <TabsContent value="kanban">
+              <TaskKanbanView tasks={projectTasks} />
+            </TabsContent>
+
+            <TabsContent value="timeline">
+              <TaskTimelineView project={selectedProjectData} tasks={projectTasks} />
+            </TabsContent>
+          </Tabs>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
