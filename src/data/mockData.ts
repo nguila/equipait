@@ -1,0 +1,199 @@
+// Mock data for the platform
+
+export type ProjectStatus = 'planeado' | 'ativo' | 'em_pausa' | 'concluido' | 'cancelado';
+export type TaskStatus = 'por_iniciar' | 'em_execucao' | 'em_revisao' | 'concluida' | 'cancelada';
+export type StrategicCategory = 'regulatorio' | 'operacional' | 'inovacao' | 'outro';
+export type Priority = 'critica' | 'alta' | 'media' | 'baixa';
+
+export interface Department {
+  id: string;
+  name: string;
+  code: string;
+  parentId?: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  departmentId: string;
+  sponsorDepartmentId: string;
+  category: StrategicCategory;
+  priority: Priority;
+  status: ProjectStatus;
+  startDate: string;
+  endDate: string;
+  managerId: string;
+  budget?: number;
+  progress: number;
+  taskCount: number;
+  teamSize: number;
+}
+
+export interface Task {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  assigneeId: string;
+  status: TaskStatus;
+  startDate: string;
+  endDate: string;
+  hoursEstimated: number;
+  hoursLogged: number;
+  priority: Priority;
+}
+
+export interface Resource {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  departmentId: string;
+  skills: string[];
+  weeklyCapacity: number;
+  currentAllocation: number;
+  avatar?: string;
+  status: 'ativo' | 'inativo';
+}
+
+export interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  location: string;
+  departmentId: string;
+  totalQty: number;
+  availableQty: number;
+  status: 'ativo' | 'inativo';
+}
+
+export interface Vehicle {
+  id: string;
+  plate: string;
+  brand: string;
+  model: string;
+  type: 'ligeiro' | 'pesado' | 'comercial' | 'outro';
+  year: number;
+  mileage: number;
+  status: 'operacional' | 'em_manutencao' | 'inativo';
+  location: string;
+  departmentId: string;
+  nextMaintenance?: string;
+  insuranceExpiry?: string;
+}
+
+export interface Document {
+  id: string;
+  title: string;
+  type: 'plano' | 'relatorio' | 'procedimento' | 'contrato' | 'decisao' | 'template' | 'outro';
+  projectId?: string;
+  departmentId: string;
+  url: string;
+  version: string;
+  ownerId: string;
+  approvalStatus: 'rascunho' | 'em_revisao' | 'aprovado';
+  createdAt: string;
+  tags: string[];
+}
+
+export const departments: Department[] = [
+  { id: 'd1', name: 'Tecnologia & Inovação', code: 'TI' },
+  { id: 'd2', name: 'Operações', code: 'OPS' },
+  { id: 'd3', name: 'Engenharia', code: 'ENG' },
+  { id: 'd4', name: 'Financeiro', code: 'FIN' },
+  { id: 'd5', name: 'Recursos Humanos', code: 'RH' },
+];
+
+export const projects: Project[] = [
+  { id: 'p1', name: 'Migração Cloud AWS', code: 'PRJ-001', description: 'Migração completa da infraestrutura on-premise para AWS.', departmentId: 'd1', sponsorDepartmentId: 'd4', category: 'operacional', priority: 'critica', status: 'ativo', startDate: '2026-01-15', endDate: '2026-06-30', managerId: 'r1', budget: 450000, progress: 35, taskCount: 24, teamSize: 8 },
+  { id: 'p2', name: 'Portal do Colaborador v2', code: 'PRJ-002', description: 'Redesenho do portal interno para colaboradores.', departmentId: 'd1', sponsorDepartmentId: 'd5', category: 'inovacao', priority: 'alta', status: 'ativo', startDate: '2026-02-01', endDate: '2026-05-15', managerId: 'r2', budget: 120000, progress: 60, taskCount: 18, teamSize: 5 },
+  { id: 'p3', name: 'Conformidade RGPD 2026', code: 'PRJ-003', description: 'Atualização de processos para conformidade com nova regulamentação.', departmentId: 'd4', sponsorDepartmentId: 'd4', category: 'regulatorio', priority: 'critica', status: 'ativo', startDate: '2026-01-01', endDate: '2026-03-31', managerId: 'r5', budget: 80000, progress: 75, taskCount: 12, teamSize: 4 },
+  { id: 'p4', name: 'Automação Linha Produção B', code: 'PRJ-004', description: 'Implementação de automação robótica na linha B.', departmentId: 'd3', sponsorDepartmentId: 'd2', category: 'operacional', priority: 'alta', status: 'planeado', startDate: '2026-03-01', endDate: '2026-09-30', managerId: 'r3', budget: 680000, progress: 0, taskCount: 32, teamSize: 12 },
+  { id: 'p5', name: 'Sistema BI Corporativo', code: 'PRJ-005', description: 'Implementação de plataforma de Business Intelligence.', departmentId: 'd1', sponsorDepartmentId: 'd4', category: 'inovacao', priority: 'media', status: 'em_pausa', startDate: '2025-11-01', endDate: '2026-04-30', managerId: 'r1', budget: 200000, progress: 20, taskCount: 15, teamSize: 6 },
+  { id: 'p6', name: 'Renovação Frota Comercial', code: 'PRJ-006', description: 'Substituição progressiva de frota comercial para veículos elétricos.', departmentId: 'd2', sponsorDepartmentId: 'd4', category: 'operacional', priority: 'media', status: 'ativo', startDate: '2026-01-15', endDate: '2026-12-31', managerId: 'r4', progress: 15, taskCount: 8, teamSize: 3 },
+];
+
+export const tasks: Task[] = [
+  { id: 't1', projectId: 'p1', title: 'Levantamento de infraestrutura atual', description: '', assigneeId: 'r1', status: 'concluida', startDate: '2026-01-15', endDate: '2026-01-31', hoursEstimated: 40, hoursLogged: 38, priority: 'alta' },
+  { id: 't2', projectId: 'p1', title: 'Definição de arquitetura cloud', description: '', assigneeId: 'r2', status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-14', hoursEstimated: 60, hoursLogged: 55, priority: 'critica' },
+  { id: 't3', projectId: 'p1', title: 'Migração base de dados principal', description: '', assigneeId: 'r1', status: 'em_execucao', startDate: '2026-02-15', endDate: '2026-03-15', hoursEstimated: 80, hoursLogged: 32, priority: 'critica' },
+  { id: 't4', projectId: 'p1', title: 'Configuração VPN e segurança', description: '', assigneeId: 'r6', status: 'por_iniciar', startDate: '2026-03-01', endDate: '2026-03-20', hoursEstimated: 40, hoursLogged: 0, priority: 'alta' },
+  { id: 't5', projectId: 'p2', title: 'Design UI/UX novo portal', description: '', assigneeId: 'r7', status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-20', hoursEstimated: 50, hoursLogged: 48, priority: 'alta' },
+  { id: 't6', projectId: 'p2', title: 'Desenvolvimento frontend', description: '', assigneeId: 'r2', status: 'em_execucao', startDate: '2026-02-20', endDate: '2026-04-01', hoursEstimated: 120, hoursLogged: 75, priority: 'alta' },
+  { id: 't7', projectId: 'p2', title: 'Integração SSO', description: '', assigneeId: 'r6', status: 'em_revisao', startDate: '2026-03-01', endDate: '2026-03-15', hoursEstimated: 30, hoursLogged: 28, priority: 'media' },
+  { id: 't8', projectId: 'p3', title: 'Auditoria processos atuais', description: '', assigneeId: 'r5', status: 'concluida', startDate: '2026-01-01', endDate: '2026-01-20', hoursEstimated: 40, hoursLogged: 42, priority: 'critica' },
+  { id: 't9', projectId: 'p3', title: 'Implementação políticas privacidade', description: '', assigneeId: 'r5', status: 'em_execucao', startDate: '2026-02-01', endDate: '2026-03-01', hoursEstimated: 60, hoursLogged: 40, priority: 'critica' },
+  { id: 't10', projectId: 'p6', title: 'Estudo de mercado veículos elétricos', description: '', assigneeId: 'r4', status: 'concluida', startDate: '2026-01-15', endDate: '2026-02-01', hoursEstimated: 20, hoursLogged: 18, priority: 'media' },
+];
+
+export const resources: Resource[] = [
+  { id: 'r1', name: 'Ana Rodrigues', email: 'ana.rodrigues@empresa.pt', role: 'Arquiteta de Sistemas', departmentId: 'd1', skills: ['AWS', 'DevOps', 'Kubernetes'], weeklyCapacity: 40, currentAllocation: 95, status: 'ativo' },
+  { id: 'r2', name: 'Miguel Santos', email: 'miguel.santos@empresa.pt', role: 'Engenheiro Full-Stack', departmentId: 'd1', skills: ['React', 'Node.js', 'TypeScript'], weeklyCapacity: 40, currentAllocation: 110, status: 'ativo' },
+  { id: 'r3', name: 'Carlos Ferreira', email: 'carlos.ferreira@empresa.pt', role: 'Engenheiro Industrial', departmentId: 'd3', skills: ['Automação', 'PLC', 'SCADA'], weeklyCapacity: 40, currentAllocation: 40, status: 'ativo' },
+  { id: 'r4', name: 'Sofia Almeida', email: 'sofia.almeida@empresa.pt', role: 'Gestora de Operações', departmentId: 'd2', skills: ['Logística', 'Frota', 'Lean'], weeklyCapacity: 40, currentAllocation: 65, status: 'ativo' },
+  { id: 'r5', name: 'Ricardo Oliveira', email: 'ricardo.oliveira@empresa.pt', role: 'Compliance Officer', departmentId: 'd4', skills: ['RGPD', 'Auditoria', 'Risco'], weeklyCapacity: 40, currentAllocation: 80, status: 'ativo' },
+  { id: 'r6', name: 'Beatriz Costa', email: 'beatriz.costa@empresa.pt', role: 'Engenheira de Segurança', departmentId: 'd1', skills: ['Cybersecurity', 'SSO', 'IAM'], weeklyCapacity: 40, currentAllocation: 70, status: 'ativo' },
+  { id: 'r7', name: 'Diogo Martins', email: 'diogo.martins@empresa.pt', role: 'Designer UX/UI', departmentId: 'd1', skills: ['Figma', 'Design Systems', 'Prototipagem'], weeklyCapacity: 40, currentAllocation: 50, status: 'ativo' },
+  { id: 'r8', name: 'Mariana Pereira', email: 'mariana.pereira@empresa.pt', role: 'Analista de Dados', departmentId: 'd4', skills: ['Power BI', 'SQL', 'Python'], weeklyCapacity: 40, currentAllocation: 30, status: 'ativo' },
+];
+
+export const inventoryItems: InventoryItem[] = [
+  { id: 'i1', code: 'INV-001', name: 'MacBook Pro 16"', category: 'Equipamento Informático', location: 'Sede - Piso 3', departmentId: 'd1', totalQty: 25, availableQty: 4, status: 'ativo' },
+  { id: 'i2', code: 'INV-002', name: 'Monitor Dell 27" 4K', category: 'Equipamento Informático', location: 'Sede - Armazém', departmentId: 'd1', totalQty: 40, availableQty: 8, status: 'ativo' },
+  { id: 'i3', code: 'INV-003', name: 'Licença AutoCAD', category: 'Software', location: 'Digital', departmentId: 'd3', totalQty: 15, availableQty: 3, status: 'ativo' },
+  { id: 'i4', code: 'INV-004', name: 'Servidor Dell PowerEdge R750', category: 'Infraestrutura', location: 'Datacenter', departmentId: 'd1', totalQty: 8, availableQty: 2, status: 'ativo' },
+  { id: 'i5', code: 'INV-005', name: 'Kit Ferramentas Elétricas', category: 'Equipamento Industrial', location: 'Fábrica - Armazém A', departmentId: 'd3', totalQty: 12, availableQty: 5, status: 'ativo' },
+  { id: 'i6', code: 'INV-006', name: 'Projetor Epson EB-L260F', category: 'Audiovisual', location: 'Sede - Piso 2', departmentId: 'd2', totalQty: 6, availableQty: 2, status: 'ativo' },
+];
+
+export const vehicles: Vehicle[] = [
+  { id: 'v1', plate: 'AA-00-BB', brand: 'Renault', model: 'Kangoo E-Tech', type: 'comercial', year: 2025, mileage: 12450, status: 'operacional', location: 'Sede', departmentId: 'd2', nextMaintenance: '2026-03-15', insuranceExpiry: '2026-08-01' },
+  { id: 'v2', plate: 'CC-11-DD', brand: 'Toyota', model: 'Corolla', type: 'ligeiro', year: 2024, mileage: 28300, status: 'operacional', location: 'Sede', departmentId: 'd2', nextMaintenance: '2026-04-01', insuranceExpiry: '2026-06-15' },
+  { id: 'v3', plate: 'EE-22-FF', brand: 'Mercedes', model: 'Sprinter', type: 'pesado', year: 2023, mileage: 65200, status: 'em_manutencao', location: 'Oficina Externa', departmentId: 'd2', nextMaintenance: '2026-02-20', insuranceExpiry: '2026-09-30' },
+  { id: 'v4', plate: 'GG-33-HH', brand: 'Volkswagen', model: 'ID.4', type: 'ligeiro', year: 2025, mileage: 8700, status: 'operacional', location: 'Fábrica', departmentId: 'd3', nextMaintenance: '2026-05-01', insuranceExpiry: '2026-12-01' },
+  { id: 'v5', plate: 'II-44-JJ', brand: 'Fiat', model: 'Ducato', type: 'comercial', year: 2022, mileage: 89500, status: 'operacional', location: 'Sede', departmentId: 'd2', nextMaintenance: '2026-02-28', insuranceExpiry: '2026-04-15' },
+  { id: 'v6', plate: 'KK-55-LL', brand: 'Tesla', model: 'Model 3', type: 'ligeiro', year: 2025, mileage: 5200, status: 'operacional', location: 'Sede', departmentId: 'd4', nextMaintenance: '2026-07-01', insuranceExpiry: '2027-01-15' },
+];
+
+export const documents: Document[] = [
+  { id: 'doc1', title: 'Plano de Migração AWS - Fase 1', type: 'plano', projectId: 'p1', departmentId: 'd1', url: '#', version: '2.1', ownerId: 'r1', approvalStatus: 'aprovado', createdAt: '2026-01-10', tags: ['AWS', 'Migração', 'Infraestrutura'] },
+  { id: 'doc2', title: 'Relatório de Progresso Q1 2026', type: 'relatorio', departmentId: 'd1', url: '#', version: '1.0', ownerId: 'r1', approvalStatus: 'em_revisao', createdAt: '2026-02-05', tags: ['Relatório', 'Trimestral'] },
+  { id: 'doc3', title: 'Procedimento de Onboarding TI', type: 'procedimento', departmentId: 'd1', url: '#', version: '3.0', ownerId: 'r7', approvalStatus: 'aprovado', createdAt: '2025-12-01', tags: ['Onboarding', 'Procedimento'] },
+  { id: 'doc4', title: 'Política de Proteção de Dados', type: 'procedimento', projectId: 'p3', departmentId: 'd4', url: '#', version: '1.2', ownerId: 'r5', approvalStatus: 'aprovado', createdAt: '2026-01-20', tags: ['RGPD', 'Privacidade', 'Compliance'] },
+  { id: 'doc5', title: 'Contrato Manutenção Frota 2026', type: 'contrato', departmentId: 'd2', url: '#', version: '1.0', ownerId: 'r4', approvalStatus: 'rascunho', createdAt: '2026-02-01', tags: ['Frota', 'Contrato', 'Manutenção'] },
+  { id: 'doc6', title: 'Template - Proposta de Projeto', type: 'template', departmentId: 'd1', url: '#', version: '2.0', ownerId: 'r1', approvalStatus: 'aprovado', createdAt: '2025-11-15', tags: ['Template', 'Projeto'] },
+];
+
+export const statusLabels: Record<string, string> = {
+  planeado: 'Planeado', ativo: 'Ativo', em_pausa: 'Em Pausa', concluido: 'Concluído', cancelado: 'Cancelado',
+  por_iniciar: 'Por Iniciar', em_execucao: 'Em Execução', em_revisao: 'Em Revisão', concluida: 'Concluída', cancelada: 'Cancelada',
+  operacional: 'Operacional', em_manutencao: 'Em Manutenção', inativo: 'Inativo',
+  rascunho: 'Rascunho', aprovado: 'Aprovado',
+  regulatorio: 'Regulatório', operacional_cat: 'Operacional', inovacao: 'Inovação', outro: 'Outro',
+  critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa',
+};
+
+export const statusColors: Record<string, string> = {
+  planeado: 'bg-muted text-muted-foreground',
+  ativo: 'bg-primary/10 text-primary',
+  em_pausa: 'bg-warning/10 text-warning',
+  concluido: 'bg-success/10 text-success',
+  cancelado: 'bg-destructive/10 text-destructive',
+  por_iniciar: 'bg-muted text-muted-foreground',
+  em_execucao: 'bg-primary/10 text-primary',
+  em_revisao: 'bg-warning/10 text-warning',
+  concluida: 'bg-success/10 text-success',
+  cancelada: 'bg-destructive/10 text-destructive',
+  operacional: 'bg-success/10 text-success',
+  em_manutencao: 'bg-warning/10 text-warning',
+  inativo: 'bg-muted text-muted-foreground',
+  rascunho: 'bg-muted text-muted-foreground',
+  aprovado: 'bg-success/10 text-success',
+  critica: 'bg-destructive/10 text-destructive',
+  alta: 'bg-warning/10 text-warning',
+  media: 'bg-primary/10 text-primary',
+  baixa: 'bg-muted text-muted-foreground',
+};
