@@ -10,6 +10,7 @@ import ResourcesPage from "@/pages/ResourcesPage";
 import InventoryPage from "@/pages/InventoryPage";
 import FleetPage from "@/pages/FleetPage";
 import DocumentsPage from "@/pages/DocumentsPage";
+import ReportsPage from "@/pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/inventario" element={<InventoryPage />} />
             <Route path="/frota" element={<FleetPage />} />
             <Route path="/documentos" element={<DocumentsPage />} />
+            <Route path="/relatorios" element={<ReportsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
