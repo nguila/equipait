@@ -40,9 +40,9 @@ const AppSidebar = () => {
              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shadow-lg">
                <FolderKanban className="h-4 w-4 text-white font-bold" />
              </div>
-             <span className="text-sm font-bold text-white tracking-wide">
-               ProjectHub
-             </span>
+              <span className="text-sm font-bold text-white tracking-wide">
+                ERP Data CoLAB
+              </span>
            </div>
          )}
          {collapsed && (
