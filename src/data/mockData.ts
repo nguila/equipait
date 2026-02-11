@@ -37,12 +37,18 @@ export interface Task {
   title: string;
   description: string;
   assigneeId: string;
+  teamIds?: string[];
+  parentTaskId?: string;
   status: TaskStatus;
   startDate: string;
   endDate: string;
   hoursEstimated: number;
   hoursLogged: number;
   priority: Priority;
+  isMilestone?: boolean;
+  milestoneLabel?: string;
+  riskLevel?: 'none' | 'low' | 'medium' | 'high';
+  delayDays?: number;
 }
 
 export interface Resource {
@@ -163,16 +169,29 @@ export const projects: Project[] = [
 ];
 
 export const tasks: Task[] = [
-  { id: 't1', projectId: 'p1', title: 'Levantamento de infraestrutura atual', description: '', assigneeId: 'r1', status: 'concluida', startDate: '2026-01-15', endDate: '2026-01-31', hoursEstimated: 40, hoursLogged: 38, priority: 'alta' },
-  { id: 't2', projectId: 'p1', title: 'Definição de arquitetura cloud', description: '', assigneeId: 'r2', status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-14', hoursEstimated: 60, hoursLogged: 55, priority: 'critica' },
-  { id: 't3', projectId: 'p1', title: 'Migração base de dados principal', description: '', assigneeId: 'r1', status: 'em_execucao', startDate: '2026-02-15', endDate: '2026-03-15', hoursEstimated: 80, hoursLogged: 32, priority: 'critica' },
-  { id: 't4', projectId: 'p1', title: 'Configuração VPN e segurança', description: '', assigneeId: 'r6', status: 'por_iniciar', startDate: '2026-03-01', endDate: '2026-03-20', hoursEstimated: 40, hoursLogged: 0, priority: 'alta' },
-  { id: 't5', projectId: 'p2', title: 'Design UI/UX novo portal', description: '', assigneeId: 'r7', status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-20', hoursEstimated: 50, hoursLogged: 48, priority: 'alta' },
-  { id: 't6', projectId: 'p2', title: 'Desenvolvimento frontend', description: '', assigneeId: 'r2', status: 'em_execucao', startDate: '2026-02-20', endDate: '2026-04-01', hoursEstimated: 120, hoursLogged: 75, priority: 'alta' },
-  { id: 't7', projectId: 'p2', title: 'Integração SSO', description: '', assigneeId: 'r6', status: 'em_revisao', startDate: '2026-03-01', endDate: '2026-03-15', hoursEstimated: 30, hoursLogged: 28, priority: 'media' },
-  { id: 't8', projectId: 'p3', title: 'Auditoria processos atuais', description: '', assigneeId: 'r5', status: 'concluida', startDate: '2026-01-01', endDate: '2026-01-20', hoursEstimated: 40, hoursLogged: 42, priority: 'critica' },
-  { id: 't9', projectId: 'p3', title: 'Implementação políticas privacidade', description: '', assigneeId: 'r5', status: 'em_execucao', startDate: '2026-02-01', endDate: '2026-03-01', hoursEstimated: 60, hoursLogged: 40, priority: 'critica' },
-  { id: 't10', projectId: 'p6', title: 'Estudo de mercado veículos elétricos', description: '', assigneeId: 'r4', status: 'concluida', startDate: '2026-01-15', endDate: '2026-02-01', hoursEstimated: 20, hoursLogged: 18, priority: 'media' },
+  // PRJ-001: Migração Cloud AWS
+  { id: 't1', projectId: 'p1', title: 'Levantamento de infraestrutura atual', description: 'Mapear todos os servidores, serviços e dependências.', assigneeId: 'r1', teamIds: ['r1', 'r6'], status: 'concluida', startDate: '2026-01-15', endDate: '2026-01-31', hoursEstimated: 40, hoursLogged: 38, priority: 'alta', riskLevel: 'none', delayDays: 0 },
+  { id: 't2', projectId: 'p1', title: 'Definição de arquitetura cloud', description: 'Desenhar a arquitetura target em AWS.', assigneeId: 'r2', teamIds: ['r1', 'r2'], status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-14', hoursEstimated: 60, hoursLogged: 55, priority: 'critica', isMilestone: true, milestoneLabel: 'Arquitetura Aprovada', riskLevel: 'none', delayDays: 0 },
+  { id: 't3', projectId: 'p1', title: 'Migração base de dados principal', description: 'Migrar PostgreSQL para RDS.', assigneeId: 'r1', teamIds: ['r1', 'r2'], status: 'em_execucao', startDate: '2026-02-15', endDate: '2026-03-15', hoursEstimated: 80, hoursLogged: 32, priority: 'critica', riskLevel: 'high', delayDays: 5 },
+  { id: 't3a', projectId: 'p1', title: 'Backup e validação de dados', description: 'Subtarefa de backup antes da migração.', assigneeId: 'r1', parentTaskId: 't3', status: 'concluida', startDate: '2026-02-15', endDate: '2026-02-20', hoursEstimated: 16, hoursLogged: 14, priority: 'critica', riskLevel: 'none', delayDays: 0 },
+  { id: 't3b', projectId: 'p1', title: 'Configuração RDS e replica', description: 'Setup de instância RDS com read replicas.', assigneeId: 'r2', parentTaskId: 't3', status: 'em_execucao', startDate: '2026-02-20', endDate: '2026-03-05', hoursEstimated: 32, hoursLogged: 18, priority: 'critica', riskLevel: 'medium', delayDays: 3 },
+  { id: 't4', projectId: 'p1', title: 'Configuração VPN e segurança', description: 'Implementar VPN site-to-site e security groups.', assigneeId: 'r6', teamIds: ['r6'], status: 'por_iniciar', startDate: '2026-03-01', endDate: '2026-03-20', hoursEstimated: 40, hoursLogged: 0, priority: 'alta', riskLevel: 'low', delayDays: 0 },
+  { id: 't4a', projectId: 'p1', title: 'Migração concluída', description: 'Marco: toda a infraestrutura migrada.', assigneeId: 'r1', status: 'por_iniciar', startDate: '2026-04-15', endDate: '2026-04-15', hoursEstimated: 0, hoursLogged: 0, priority: 'critica', isMilestone: true, milestoneLabel: 'Go-Live AWS', riskLevel: 'medium', delayDays: 0 },
+  // PRJ-002: Portal do Colaborador v2
+  { id: 't5', projectId: 'p2', title: 'Design UI/UX novo portal', description: 'Wireframes e protótipos em Figma.', assigneeId: 'r7', teamIds: ['r7'], status: 'concluida', startDate: '2026-02-01', endDate: '2026-02-20', hoursEstimated: 50, hoursLogged: 48, priority: 'alta', riskLevel: 'none', delayDays: 0 },
+  { id: 't5a', projectId: 'p2', title: 'Design System definido', description: 'Marco: design system completo e aprovado.', assigneeId: 'r7', status: 'concluida', startDate: '2026-02-20', endDate: '2026-02-20', hoursEstimated: 0, hoursLogged: 0, priority: 'alta', isMilestone: true, milestoneLabel: 'Design System Ready', riskLevel: 'none', delayDays: 0 },
+  { id: 't6', projectId: 'p2', title: 'Desenvolvimento frontend', description: 'Implementação em React.', assigneeId: 'r2', teamIds: ['r2', 'r7'], status: 'em_execucao', startDate: '2026-02-20', endDate: '2026-04-01', hoursEstimated: 120, hoursLogged: 75, priority: 'alta', riskLevel: 'medium', delayDays: 8 },
+  { id: 't6a', projectId: 'p2', title: 'Componentes base', description: 'Subtarefa: criar componentes reutilizáveis.', assigneeId: 'r2', parentTaskId: 't6', status: 'concluida', startDate: '2026-02-20', endDate: '2026-03-05', hoursEstimated: 40, hoursLogged: 38, priority: 'alta', riskLevel: 'none', delayDays: 0 },
+  { id: 't6b', projectId: 'p2', title: 'Páginas e fluxos', description: 'Subtarefa: implementar páginas e navegação.', assigneeId: 'r2', parentTaskId: 't6', status: 'em_execucao', startDate: '2026-03-05', endDate: '2026-03-25', hoursEstimated: 60, hoursLogged: 30, priority: 'alta', riskLevel: 'medium', delayDays: 5 },
+  { id: 't7', projectId: 'p2', title: 'Integração SSO', description: 'Single sign-on via Azure AD.', assigneeId: 'r6', teamIds: ['r6', 'r2'], status: 'em_revisao', startDate: '2026-03-01', endDate: '2026-03-15', hoursEstimated: 30, hoursLogged: 28, priority: 'media', riskLevel: 'low', delayDays: 2 },
+  // PRJ-003: Conformidade RGPD
+  { id: 't8', projectId: 'p3', title: 'Auditoria processos atuais', description: 'Levantamento e gap analysis.', assigneeId: 'r5', teamIds: ['r5', 'r8'], status: 'concluida', startDate: '2026-01-01', endDate: '2026-01-20', hoursEstimated: 40, hoursLogged: 42, priority: 'critica', riskLevel: 'none', delayDays: 0 },
+  { id: 't9', projectId: 'p3', title: 'Implementação políticas privacidade', description: 'Criar e aplicar novas políticas.', assigneeId: 'r5', teamIds: ['r5'], status: 'em_execucao', startDate: '2026-02-01', endDate: '2026-03-01', hoursEstimated: 60, hoursLogged: 40, priority: 'critica', riskLevel: 'high', delayDays: 10 },
+  { id: 't9a', projectId: 'p3', title: 'Conformidade atingida', description: 'Marco: organização em conformidade total.', assigneeId: 'r5', status: 'por_iniciar', startDate: '2026-03-31', endDate: '2026-03-31', hoursEstimated: 0, hoursLogged: 0, priority: 'critica', isMilestone: true, milestoneLabel: 'RGPD Compliant', riskLevel: 'high', delayDays: 0 },
+  // PRJ-006: Renovação Frota
+  { id: 't10', projectId: 'p6', title: 'Estudo de mercado veículos elétricos', description: 'Comparar fabricantes e modelos.', assigneeId: 'r4', teamIds: ['r4'], status: 'concluida', startDate: '2026-01-15', endDate: '2026-02-01', hoursEstimated: 20, hoursLogged: 18, priority: 'media', riskLevel: 'none', delayDays: 0 },
+  { id: 't11', projectId: 'p6', title: 'Negociação com fornecedores', description: 'Contactar dealers e negociar condições.', assigneeId: 'r4', teamIds: ['r4'], status: 'em_execucao', startDate: '2026-02-05', endDate: '2026-03-15', hoursEstimated: 30, hoursLogged: 12, priority: 'media', riskLevel: 'low', delayDays: 0 },
+  { id: 't12', projectId: 'p6', title: 'Primeira entrega de veículos', description: 'Marco: primeiros 3 veículos elétricos entregues.', assigneeId: 'r4', status: 'por_iniciar', startDate: '2026-05-01', endDate: '2026-05-01', hoursEstimated: 0, hoursLogged: 0, priority: 'media', isMilestone: true, milestoneLabel: 'Primeira Entrega EV', riskLevel: 'none', delayDays: 0 },
 ];
 
 export const resources: Resource[] = [
@@ -246,6 +265,7 @@ export const statusLabels: Record<string, string> = {
   critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa',
   pendente: 'Pendente', em_preparacao: 'Em Preparação', entregue: 'Entregue',
   requisicao: 'Requisição', devolucao: 'Devolução', transferencia: 'Transferência', abate: 'Abate',
+  none: 'Sem Risco', low: 'Baixo', medium: 'Médio', high: 'Alto',
 };
 
 export const statusColors: Record<string, string> = {
@@ -275,4 +295,8 @@ export const statusColors: Record<string, string> = {
   devolucao: 'bg-success/10 text-success',
   transferencia: 'bg-primary/10 text-primary',
   abate: 'bg-destructive/10 text-destructive',
+  none: 'bg-muted text-muted-foreground',
+  low: 'bg-success/10 text-success',
+  medium: 'bg-warning/10 text-warning',
+  high: 'bg-destructive/10 text-destructive',
 };
