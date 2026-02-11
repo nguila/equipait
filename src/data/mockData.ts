@@ -58,16 +58,62 @@ export interface Resource {
   status: 'ativo' | 'inativo';
 }
 
+export interface Warehouse {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  locations: WarehouseLocation[];
+}
+
+export interface WarehouseLocation {
+  id: string;
+  warehouseId: string;
+  name: string;
+  zone: string;
+  capacity: number;
+  currentOccupancy: number;
+}
+
 export interface InventoryItem {
   id: string;
   code: string;
   name: string;
   category: string;
   location: string;
+  warehouseId: string;
+  locationId: string;
   departmentId: string;
   totalQty: number;
   availableQty: number;
+  minStock: number;
+  maxStock: number;
+  unit: string;
   status: 'ativo' | 'inativo';
+}
+
+export type StockRequestStatus = 'pendente' | 'aprovado' | 'em_preparacao' | 'entregue' | 'cancelado';
+export type StockEventType = 'requisicao' | 'devolucao' | 'transferencia' | 'abate';
+
+export interface StockRequest {
+  id: string;
+  code: string;
+  requesterId: string;
+  requesterName: string;
+  date: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  warehouseId: string;
+  warehouseName: string;
+  locationId: string;
+  locationName: string;
+  destination: string;
+  eventType: StockEventType;
+  expectedPickupDate: string;
+  pickupPersonName: string;
+  observations: string;
+  status: StockRequestStatus;
 }
 
 export interface Vehicle {
@@ -140,13 +186,37 @@ export const resources: Resource[] = [
   { id: 'r8', name: 'Mariana Pereira', email: 'mariana.pereira@empresa.pt', role: 'Analista de Dados', departmentId: 'd4', skills: ['Power BI', 'SQL', 'Python'], weeklyCapacity: 40, currentAllocation: 30, status: 'ativo' },
 ];
 
+export const warehouses: Warehouse[] = [
+  { id: 'w1', name: 'Armazém Central - Sede', code: 'ARM-SEDE', address: 'Rua Principal, 100 - Lisboa', locations: [] },
+  { id: 'w2', name: 'Armazém Fábrica A', code: 'ARM-FAB-A', address: 'Zona Industrial Norte - Porto', locations: [] },
+  { id: 'w3', name: 'Armazém Datacenter', code: 'ARM-DC', address: 'Parque Tecnológico - Oeiras', locations: [] },
+];
+
+export const warehouseLocations: WarehouseLocation[] = [
+  { id: 'wl1', warehouseId: 'w1', name: 'Corredor A - Prateleira 1', zone: 'Zona A', capacity: 100, currentOccupancy: 65 },
+  { id: 'wl2', warehouseId: 'w1', name: 'Corredor A - Prateleira 2', zone: 'Zona A', capacity: 100, currentOccupancy: 40 },
+  { id: 'wl3', warehouseId: 'w1', name: 'Corredor B - Prateleira 1', zone: 'Zona B', capacity: 80, currentOccupancy: 72 },
+  { id: 'wl4', warehouseId: 'w2', name: 'Seção Industrial 1', zone: 'Produção', capacity: 200, currentOccupancy: 120 },
+  { id: 'wl5', warehouseId: 'w2', name: 'Seção Industrial 2', zone: 'Manutenção', capacity: 150, currentOccupancy: 45 },
+  { id: 'wl6', warehouseId: 'w3', name: 'Rack Server A', zone: 'Datacenter', capacity: 50, currentOccupancy: 30 },
+  { id: 'wl7', warehouseId: 'w3', name: 'Rack Server B', zone: 'Datacenter', capacity: 50, currentOccupancy: 18 },
+];
+
 export const inventoryItems: InventoryItem[] = [
-  { id: 'i1', code: 'INV-001', name: 'MacBook Pro 16"', category: 'Equipamento Informático', location: 'Sede - Piso 3', departmentId: 'd1', totalQty: 25, availableQty: 4, status: 'ativo' },
-  { id: 'i2', code: 'INV-002', name: 'Monitor Dell 27" 4K', category: 'Equipamento Informático', location: 'Sede - Armazém', departmentId: 'd1', totalQty: 40, availableQty: 8, status: 'ativo' },
-  { id: 'i3', code: 'INV-003', name: 'Licença AutoCAD', category: 'Software', location: 'Digital', departmentId: 'd3', totalQty: 15, availableQty: 3, status: 'ativo' },
-  { id: 'i4', code: 'INV-004', name: 'Servidor Dell PowerEdge R750', category: 'Infraestrutura', location: 'Datacenter', departmentId: 'd1', totalQty: 8, availableQty: 2, status: 'ativo' },
-  { id: 'i5', code: 'INV-005', name: 'Kit Ferramentas Elétricas', category: 'Equipamento Industrial', location: 'Fábrica - Armazém A', departmentId: 'd3', totalQty: 12, availableQty: 5, status: 'ativo' },
-  { id: 'i6', code: 'INV-006', name: 'Projetor Epson EB-L260F', category: 'Audiovisual', location: 'Sede - Piso 2', departmentId: 'd2', totalQty: 6, availableQty: 2, status: 'ativo' },
+  { id: 'i1', code: 'INV-001', name: 'MacBook Pro 16"', category: 'Equipamento Informático', location: 'Sede - Piso 3', warehouseId: 'w1', locationId: 'wl1', departmentId: 'd1', totalQty: 25, availableQty: 4, minStock: 5, maxStock: 30, unit: 'un', status: 'ativo' },
+  { id: 'i2', code: 'INV-002', name: 'Monitor Dell 27" 4K', category: 'Equipamento Informático', location: 'Sede - Armazém', warehouseId: 'w1', locationId: 'wl2', departmentId: 'd1', totalQty: 40, availableQty: 8, minStock: 10, maxStock: 50, unit: 'un', status: 'ativo' },
+  { id: 'i3', code: 'INV-003', name: 'Licença AutoCAD', category: 'Software', location: 'Digital', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd3', totalQty: 15, availableQty: 3, minStock: 5, maxStock: 20, unit: 'licença', status: 'ativo' },
+  { id: 'i4', code: 'INV-004', name: 'Servidor Dell PowerEdge R750', category: 'Infraestrutura', location: 'Datacenter', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd1', totalQty: 8, availableQty: 2, minStock: 2, maxStock: 12, unit: 'un', status: 'ativo' },
+  { id: 'i5', code: 'INV-005', name: 'Kit Ferramentas Elétricas', category: 'Equipamento Industrial', location: 'Fábrica - Armazém A', warehouseId: 'w2', locationId: 'wl4', departmentId: 'd3', totalQty: 12, availableQty: 5, minStock: 3, maxStock: 15, unit: 'kit', status: 'ativo' },
+  { id: 'i6', code: 'INV-006', name: 'Projetor Epson EB-L260F', category: 'Audiovisual', location: 'Sede - Piso 2', warehouseId: 'w1', locationId: 'wl3', departmentId: 'd2', totalQty: 6, availableQty: 2, minStock: 2, maxStock: 10, unit: 'un', status: 'ativo' },
+];
+
+export const stockRequests: StockRequest[] = [
+  { id: 'sr1', code: 'PED-001', requesterId: 'r1', requesterName: 'Ana Rodrigues', date: '2026-02-10', productId: 'i1', productName: 'MacBook Pro 16"', quantity: 2, warehouseId: 'w1', warehouseName: 'Armazém Central - Sede', locationId: 'wl1', locationName: 'Corredor A - Prateleira 1', destination: 'Departamento TI - Piso 3', eventType: 'requisicao', expectedPickupDate: '2026-02-12', pickupPersonName: 'Miguel Santos', observations: 'Para novos colaboradores da equipa de desenvolvimento.', status: 'aprovado' },
+  { id: 'sr2', code: 'PED-002', requesterId: 'r3', requesterName: 'Carlos Ferreira', date: '2026-02-08', productId: 'i5', productName: 'Kit Ferramentas Elétricas', quantity: 3, warehouseId: 'w2', warehouseName: 'Armazém Fábrica A', locationId: 'wl4', locationName: 'Seção Industrial 1', destination: 'Linha de Produção B', eventType: 'requisicao', expectedPickupDate: '2026-02-09', pickupPersonName: 'Carlos Ferreira', observations: 'Necessário para arranque do novo projeto de automação.', status: 'entregue' },
+  { id: 'sr3', code: 'PED-003', requesterId: 'r4', requesterName: 'Sofia Almeida', date: '2026-02-11', productId: 'i6', productName: 'Projetor Epson EB-L260F', quantity: 1, warehouseId: 'w1', warehouseName: 'Armazém Central - Sede', locationId: 'wl3', locationName: 'Corredor B - Prateleira 1', destination: 'Sala de Conferências - Piso 2', eventType: 'requisicao', expectedPickupDate: '2026-02-13', pickupPersonName: 'Diogo Martins', observations: 'Evento de apresentação trimestral.', status: 'pendente' },
+  { id: 'sr4', code: 'PED-004', requesterId: 'r2', requesterName: 'Miguel Santos', date: '2026-02-06', productId: 'i2', productName: 'Monitor Dell 27" 4K', quantity: 5, warehouseId: 'w1', warehouseName: 'Armazém Central - Sede', locationId: 'wl2', locationName: 'Corredor A - Prateleira 2', destination: 'Open Space TI', eventType: 'requisicao', expectedPickupDate: '2026-02-07', pickupPersonName: 'Miguel Santos', observations: 'Setup de estações de trabalho dual-monitor.', status: 'entregue' },
+  { id: 'sr5', code: 'PED-005', requesterId: 'r5', requesterName: 'Ricardo Oliveira', date: '2026-02-11', productId: 'i3', productName: 'Licença AutoCAD', quantity: 2, warehouseId: 'w3', warehouseName: 'Armazém Datacenter', locationId: 'wl6', locationName: 'Rack Server A', destination: 'Departamento Engenharia', eventType: 'requisicao', expectedPickupDate: '2026-02-14', pickupPersonName: 'Beatriz Costa', observations: 'Licenças adicionais para equipa de projeto.', status: 'pendente' },
 ];
 
 export const vehicles: Vehicle[] = [
@@ -174,6 +244,8 @@ export const statusLabels: Record<string, string> = {
   rascunho: 'Rascunho', aprovado: 'Aprovado',
   regulatorio: 'Regulatório', operacional_cat: 'Operacional', inovacao: 'Inovação', outro: 'Outro',
   critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa',
+  pendente: 'Pendente', em_preparacao: 'Em Preparação', entregue: 'Entregue',
+  requisicao: 'Requisição', devolucao: 'Devolução', transferencia: 'Transferência', abate: 'Abate',
 };
 
 export const statusColors: Record<string, string> = {
@@ -196,4 +268,11 @@ export const statusColors: Record<string, string> = {
   alta: 'bg-warning/10 text-warning',
   media: 'bg-primary/10 text-primary',
   baixa: 'bg-muted text-muted-foreground',
+  pendente: 'bg-warning/10 text-warning',
+  em_preparacao: 'bg-primary/10 text-primary',
+  entregue: 'bg-success/10 text-success',
+  requisicao: 'bg-primary/10 text-primary',
+  devolucao: 'bg-success/10 text-success',
+  transferencia: 'bg-primary/10 text-primary',
+  abate: 'bg-destructive/10 text-destructive',
 };
