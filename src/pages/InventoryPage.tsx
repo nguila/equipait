@@ -3,26 +3,35 @@ import { inventoryItems as initialItems, departments, stockRequests as initialRe
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3 } from "lucide-react";
+import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2 } from "lucide-react";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
 import WarehouseManager from "@/components/inventory/WarehouseManager";
 import OrdersTable from "@/components/inventory/OrdersTable";
 import StockStatusCards from "@/components/inventory/StockStatusCards";
 import ExcelImportExport from "@/components/inventory/ExcelImportExport";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const InventoryPage = () => {
   const [products, setProducts] = useState<InventoryItem[]>(initialItems);
   const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const categories = [...new Set(products.map((i) => i.category))];
   const filtered = products.filter((i) => catFilter === "all" || i.category === catFilter);
   const filteredRequests = requests.filter(r => orderFilter === "all" || r.status === orderFilter);
 
   const handleAddProduct = (item: InventoryItem) => setProducts(prev => [...prev, item]);
+  const handleEditProduct = (item: InventoryItem) => setProducts(prev => prev.map(p => p.id === item.id ? item : p));
   const handleImportProducts = (items: InventoryItem[]) => setProducts(prev => [...prev, ...items]);
+  const handleDeleteProduct = (id: string) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+    setDeleteId(null);
+    toast.success("Produto eliminado com sucesso.");
+  };
   const handleAddRequest = (req: StockRequest) => setRequests(prev => [...prev, req]);
   const handleStatusChange = (id: string, status: StockRequest["status"]) => {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
@@ -76,6 +85,7 @@ const InventoryPage = () => {
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Disponível</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stock</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -102,10 +112,19 @@ const InventoryPage = () => {
                           {lowStock && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
-                        <span className="text-xs text-muted-foreground">mín: {item.minStock} / máx: {item.maxStock}</span>
-                      </td>
-                      <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
+                       <td className="px-5 py-3.5">
+                         <span className="text-xs text-muted-foreground">mín: {item.minStock} / máx: {item.maxStock}</span>
+                       </td>
+                       <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
+                       <td className="px-5 py-3.5 flex items-center gap-2">
+                         <ProductFormDialog editItem={item} onEdit={handleEditProduct} />
+                         <button 
+                           onClick={() => setDeleteId(item.id)}
+                           className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                         >
+                           <Trash2 className="h-4 w-4" />
+                         </button>
+                       </td>
                     </tr>
                   );
                 })}
@@ -172,6 +191,27 @@ const InventoryPage = () => {
           <OrdersTable requests={filteredRequests} onStatusChange={handleStatusChange} />
         </TabsContent>
       </Tabs>
+
+      {/* DIÁLOGO DE CONFIRMAÇÃO DE ELIMINAÇÃO */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Produto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem a certeza de que deseja eliminar este produto? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteId && handleDeleteProduct(deleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
