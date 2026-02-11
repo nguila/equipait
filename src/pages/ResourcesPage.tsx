@@ -81,9 +81,9 @@ const ResourcesPage = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map((resource) => {
-                    const dept = departments.find((d) => d.id === resource.departmentId);
-                    const isOverloaded = resource.currentAllocation > 100;
-                    const isHigh = resource.currentAllocation > 80;
+                     const dept = departments.find((d) => d.id === resource.departmentId);
+                     const isOverloaded = resource.currentAllocation > 100;
+                     const isHigh = resource.currentAllocation > 80;
                     const resourceTasks = tasks.filter((t) => t.assigneeId === resource.id && t.status !== "concluida" && t.status !== "cancelada");
                     const resourceProjects = [...new Set(resourceTasks.map((t) => t.projectId))];
 
