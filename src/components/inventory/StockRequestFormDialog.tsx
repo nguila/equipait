@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { pt } from "date-fns/locale";
+
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -93,7 +93,7 @@ const StockRequestFormDialog = ({ onAdd, products }: Props) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={requestDate} onSelect={setRequestDate} locale={pt} className="p-3 pointer-events-auto" />
+                <Calendar mode="single" selected={requestDate} onSelect={setRequestDate} className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
@@ -148,7 +148,7 @@ const StockRequestFormDialog = ({ onAdd, products }: Props) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={pickupDate} onSelect={setPickupDate} locale={pt} className="p-3 pointer-events-auto" />
+                <Calendar mode="single" selected={pickupDate} onSelect={setPickupDate} className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
           </div>
