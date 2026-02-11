@@ -1,14 +1,16 @@
-import { vehicles, departments } from "@/data/mockData";
+import { vehicles as initialVehicles, departments, type Vehicle } from "@/data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { AlertTriangle, Truck, Calendar, Gauge } from "lucide-react";
+import VehicleFormDialog from "@/components/fleet/VehicleFormDialog";
 
 const FleetPage = () => {
+  const [vehiclesList, setVehiclesList] = useState<Vehicle[]>(initialVehicles);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const filtered = vehicles.filter((v) => {
+  const filtered = vehiclesList.filter((v) => {
     if (statusFilter !== "all" && v.status !== statusFilter) return false;
     if (typeFilter !== "all" && v.type !== typeFilter) return false;
     return true;
@@ -23,9 +25,12 @@ const FleetPage = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Frota</h1>
-        <p className="text-sm text-muted-foreground">Gestão de veículos e manutenções</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Frota</h1>
+          <p className="text-sm text-muted-foreground">Gestão de veículos e manutenções</p>
+        </div>
+        <VehicleFormDialog onAdd={(v) => setVehiclesList([...vehiclesList, v])} />
       </div>
 
       <div className="flex items-center gap-3">

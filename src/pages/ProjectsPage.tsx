@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { projects, departments, tasks, resources, type Task } from "@/data/mockData";
+import { projects as initialProjects, departments, tasks, resources, type Task, type Project } from "@/data/mockData";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,26 +8,31 @@ import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, GanttChart } from "
 import TaskListView from "@/components/projects/TaskListView";
 import TaskKanbanView from "@/components/projects/TaskKanbanView";
 import TaskTimelineView from "@/components/projects/TaskTimelineView";
+import ProjectFormDialog from "@/components/projects/ProjectFormDialog";
 
 const ProjectsPage = () => {
+  const [projectsList, setProjectsList] = useState<Project[]>(initialProjects);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deptFilter, setDeptFilter] = useState<string>("all");
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-  const filtered = projects.filter((p) => {
+  const filtered = projectsList.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (deptFilter !== "all" && p.departmentId !== deptFilter) return false;
     return true;
   });
 
-  const selectedProjectData = selectedProject ? projects.find((p) => p.id === selectedProject) : null;
+  const selectedProjectData = selectedProject ? projectsList.find((p) => p.id === selectedProject) : null;
   const projectTasks = selectedProject ? tasks.filter((t) => t.projectId === selectedProject) : [];
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Projetos</h1>
-        <p className="text-sm text-muted-foreground">Portefólio de projetos da organização</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Projetos</h1>
+          <p className="text-sm text-muted-foreground">Portefólio de projetos da organização</p>
+        </div>
+        <ProjectFormDialog onAdd={(p) => setProjectsList([...projectsList, p])} />
       </div>
 
       {/* Filters */}
