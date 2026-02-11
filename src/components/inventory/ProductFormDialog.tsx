@@ -1,0 +1,141 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { warehouses, warehouseLocations, departments, type InventoryItem } from "@/data/mockData";
+import { toast } from "sonner";
+
+interface Props {
+  onAdd: (item: InventoryItem) => void;
+}
+
+const ProductFormDialog = ({ onAdd }: Props) => {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: "", code: "", category: "", warehouseId: "", locationId: "",
+    departmentId: "", totalQty: "", availableQty: "", minStock: "", maxStock: "", unit: "un",
+  });
+
+  const categories = ["Equipamento Informático", "Software", "Infraestrutura", "Equipamento Industrial", "Audiovisual", "Material de Escritório", "Outro"];
+  const filteredLocations = warehouseLocations.filter(l => l.warehouseId === form.warehouseId);
+
+  const handleSubmit = () => {
+    if (!form.name || !form.code || !form.category || !form.warehouseId || !form.departmentId) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    const wh = warehouses.find(w => w.id === form.warehouseId);
+    const loc = warehouseLocations.find(l => l.id === form.locationId);
+    const newItem: InventoryItem = {
+      id: `i${Date.now()}`,
+      code: form.code,
+      name: form.name,
+      category: form.category,
+      location: loc?.name || wh?.name || "",
+      warehouseId: form.warehouseId,
+      locationId: form.locationId,
+      departmentId: form.departmentId,
+      totalQty: Number(form.totalQty) || 0,
+      availableQty: Number(form.availableQty) || 0,
+      minStock: Number(form.minStock) || 0,
+      maxStock: Number(form.maxStock) || 0,
+      unit: form.unit,
+      status: "ativo",
+    };
+    onAdd(newItem);
+    setOpen(false);
+    setForm({ name: "", code: "", category: "", warehouseId: "", locationId: "", departmentId: "", totalQty: "", availableQty: "", minStock: "", maxStock: "", unit: "un" });
+    toast.success("Produto adicionado com sucesso.");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-1.5">
+          <Plus className="h-4 w-4" /> Adicionar Produto
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Novo Produto</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="space-y-1.5">
+            <Label>Código *</Label>
+            <Input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} placeholder="INV-007" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Nome *</Label>
+            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome do produto" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Categoria *</Label>
+            <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Departamento *</Label>
+            <Select value={form.departmentId} onValueChange={v => setForm(f => ({ ...f, departmentId: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Armazém *</Label>
+            <Select value={form.warehouseId} onValueChange={v => setForm(f => ({ ...f, warehouseId: v, locationId: "" }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Localização</Label>
+            <Select value={form.locationId} onValueChange={v => setForm(f => ({ ...f, locationId: v }))} disabled={!form.warehouseId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{filteredLocations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Qtd. Total</Label>
+            <Input type="number" value={form.totalQty} onChange={e => setForm(f => ({ ...f, totalQty: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Qtd. Disponível</Label>
+            <Input type="number" value={form.availableQty} onChange={e => setForm(f => ({ ...f, availableQty: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Stock Mínimo</Label>
+            <Input type="number" value={form.minStock} onChange={e => setForm(f => ({ ...f, minStock: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Stock Máximo</Label>
+            <Input type="number" value={form.maxStock} onChange={e => setForm(f => ({ ...f, maxStock: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Unidade</Label>
+            <Select value={form.unit} onValueChange={v => setForm(f => ({ ...f, unit: v }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="un">Unidade</SelectItem>
+                <SelectItem value="kit">Kit</SelectItem>
+                <SelectItem value="licença">Licença</SelectItem>
+                <SelectItem value="cx">Caixa</SelectItem>
+                <SelectItem value="kg">Kg</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={handleSubmit}>Guardar Produto</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default ProductFormDialog;
