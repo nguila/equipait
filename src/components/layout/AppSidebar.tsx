@@ -7,6 +7,7 @@ import {
   Truck,
   FileText,
   BarChart3,
+  Shield,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const navItems = [
   { icon: Truck, label: "Frota", path: "/frota" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
+  { icon: Shield, label: "Utilizadores", path: "/utilizadores" },
 ];
 
 const AppSidebar = () => {

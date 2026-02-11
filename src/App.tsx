@@ -11,6 +11,7 @@ import InventoryPage from "@/pages/InventoryPage";
 import FleetPage from "@/pages/FleetPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import ReportsPage from "@/pages/ReportsPage";
+import UsersPage from "@/pages/UsersPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/frota" element={<FleetPage />} />
             <Route path="/documentos" element={<DocumentsPage />} />
             <Route path="/relatorios" element={<ReportsPage />} />
+            <Route path="/utilizadores" element={<UsersPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
