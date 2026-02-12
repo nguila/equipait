@@ -1,7 +1,26 @@
-import { Search, Bell, Settings, HelpCircle } from "lucide-react";
+import { Search, Bell, Settings, HelpCircle, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const TopBar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({ title: "Sessão terminada" });
+    navigate("/");
+  };
+
+  const initials = user?.email
+    ? user.email.substring(0, 2).toUpperCase()
+    : "??";
+
+  const displayName = user?.email?.split("@")[0] ?? "Utilizador";
+
   return (
     <header className="flex h-14 items-center justify-between border-b border-border bg-card px-6 shadow-sm">
       <div className="relative w-96">
@@ -35,12 +54,19 @@ const TopBar = () => {
           </span>
         </button>
         <div className="ml-2 h-8 w-px bg-border" />
-        <div className="ml-2 flex items-center gap-2.5 rounded-lg px-3 py-1.5 hover:bg-primary/10 cursor-pointer transition-colors">
+        <div className="ml-2 flex items-center gap-2.5 rounded-lg px-3 py-1.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-md">
-            AR
+            {initials}
           </div>
-          <span className="text-sm font-semibold text-foreground">Ana R.</span>
+          <span className="text-sm font-semibold text-foreground">{displayName}</span>
         </div>
+        <button
+          onClick={handleSignOut}
+          className="rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          title="Terminar sessão"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
       </div>
     </header>
   );
