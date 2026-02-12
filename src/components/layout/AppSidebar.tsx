@@ -12,9 +12,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: FolderKanban, label: "Projetos", path: "/projetos" },
   { icon: Users, label: "Recursos", path: "/recursos" },
   { icon: Package, label: "Inventário", path: "/inventario" },
@@ -27,6 +28,9 @@ const navItems = [
 const AppSidebar = () => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { hasAccess } = useUserRole();
+
+  const filteredNavItems = navItems.filter((item) => hasAccess(item.path));
 
   return (
     <aside
@@ -53,10 +57,10 @@ const AppSidebar = () => {
        </div>
 
       <nav className="flex-1 space-y-1 p-2">
-         {navItems.map((item) => {
+         {filteredNavItems.map((item) => {
            const isActive =
              location.pathname === item.path ||
-             (item.path !== "/" && location.pathname.startsWith(item.path));
+             (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
            return (
              <Link
                key={item.path}
