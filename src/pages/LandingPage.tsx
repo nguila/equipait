@@ -91,11 +91,11 @@ const LandingPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
             >
               Iniciar Sessão
             </Button>
-            <Button size="sm" onClick={() => navigate("/dashboard")}>
+            <Button size="sm" onClick={() => navigate("/auth")}>
               Começar Agora
               <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
@@ -125,7 +125,7 @@ const LandingPage = () => {
             <Button
               size="lg"
               className="h-12 px-8 text-base shadow-lg"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
             >
               Aceder ao Dashboard
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -235,7 +235,7 @@ const LandingPage = () => {
               <Button
                 className="mt-8 w-full shadow-md"
                 size="lg"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/auth")}
               >
                 Começar a Utilizar
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -259,7 +259,7 @@ const LandingPage = () => {
             size="lg"
             variant="secondary"
             className="mt-8 h-12 px-8 text-base font-semibold shadow-lg"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/auth")}
           >
             Aceder ao ERP
             <ArrowRight className="ml-2 h-5 w-5" />
