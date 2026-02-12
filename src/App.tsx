@@ -13,6 +13,7 @@ import Dashboard from "@/pages/Dashboard";
 import ProjectsPage from "@/pages/ProjectsPage";
 import ResourcesPage from "@/pages/ResourcesPage";
 import InventoryPage from "@/pages/InventoryPage";
+import HelpdeskPage from "@/pages/HelpdeskPage";
 import FleetPage from "@/pages/FleetPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/projetos" element={<ProtectedRoute requiredAccess="/projetos"><ProjectsPage /></ProtectedRoute>} />
               <Route path="/recursos" element={<ProtectedRoute requiredAccess="/recursos"><ResourcesPage /></ProtectedRoute>} />
               <Route path="/inventario" element={<ProtectedRoute requiredAccess="/inventario"><InventoryPage /></ProtectedRoute>} />
+              <Route path="/helpdesk" element={<ProtectedRoute requiredAccess="/helpdesk"><HelpdeskPage /></ProtectedRoute>} />
               <Route path="/frota" element={<ProtectedRoute requiredAccess="/frota"><FleetPage /></ProtectedRoute>} />
               <Route path="/documentos" element={<ProtectedRoute requiredAccess="/documentos"><DocumentsPage /></ProtectedRoute>} />
               <Route path="/relatorios" element={<ProtectedRoute requiredAccess="/relatorios"><ReportsPage /></ProtectedRoute>} />
