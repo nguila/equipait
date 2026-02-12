@@ -6,9 +6,9 @@ export type AppRole = "admin" | "manager" | "collaborator";
 
 // Module access matrix per role
 const MODULE_ACCESS: Record<AppRole, string[]> = {
-  admin: ["/dashboard", "/projetos", "/recursos", "/inventario", "/frota", "/documentos", "/relatorios", "/utilizadores"],
-  manager: ["/dashboard", "/projetos", "/recursos", "/inventario", "/frota", "/documentos", "/relatorios"],
-  collaborator: ["/dashboard", "/projetos", "/recursos"],
+  admin: ["/dashboard", "/inventario", "/helpdesk", "/frota", "/documentos", "/relatorios", "/utilizadores"],
+  manager: ["/dashboard", "/inventario", "/helpdesk", "/frota", "/documentos", "/relatorios"],
+  collaborator: ["/dashboard", "/inventario", "/helpdesk"],
 };
 
 export const useUserRole = () => {
