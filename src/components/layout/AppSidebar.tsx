@@ -1,8 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  FolderKanban,
-  Users,
   Package,
   Truck,
   FileText,
@@ -10,15 +8,15 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  Headphones,
 } from "lucide-react";
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: FolderKanban, label: "Projetos", path: "/projetos" },
-  { icon: Users, label: "Recursos", path: "/recursos" },
   { icon: Package, label: "Inventário", path: "/inventario" },
+  { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: Truck, label: "Frota", path: "/frota" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
   { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
@@ -42,7 +40,7 @@ const AppSidebar = () => {
          {!collapsed && (
            <div className="flex items-center gap-2">
              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shadow-lg">
-               <FolderKanban className="h-4 w-4 text-white font-bold" />
+               <Package className="h-4 w-4 text-white font-bold" />
              </div>
               <span className="text-sm font-bold text-white tracking-wide">
                 ERP Data CoLAB
@@ -51,7 +49,7 @@ const AppSidebar = () => {
          )}
          {collapsed && (
            <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shadow-lg">
-             <FolderKanban className="h-4 w-4 text-white font-bold" />
+             <Package className="h-4 w-4 text-white font-bold" />
            </div>
          )}
        </div>
