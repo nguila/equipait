@@ -2,17 +2,20 @@ import { resources as initialResources, departments, tasks, projects, type Resou
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import { AlertTriangle, Users, BarChart3, Zap } from "lucide-react";
+import { AlertTriangle, Users, BarChart3, Zap, Lock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import ResourceFormDialog from "@/components/resources/ResourceFormDialog";
 import ResourceCapacityCards from "@/components/resources/ResourceCapacityCards";
 import ResourceHeatmap from "@/components/resources/ResourceHeatmap";
 import ProjectAllocationView from "@/components/resources/ProjectAllocationView";
 import ConflictDetector from "@/components/resources/ConflictDetector";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const ResourcesPage = () => {
   const [resourcesList, setResourcesList] = useState<Resource[]>(initialResources);
   const [deptFilter, setDeptFilter] = useState<string>("all");
+  const { isCollaborator } = useUserRole();
 
   const filtered = resourcesList.filter((r) => {
     if (deptFilter !== "all" && r.departmentId !== deptFilter) return false;
@@ -21,12 +24,21 @@ const ResourcesPage = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
+      {isCollaborator && (
+        <Alert className="border-warning/50 bg-warning/10">
+          <Lock className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-muted-foreground">
+            Modo apenas leitura: Como colaborador, pode visualizar recursos mas não pode criar ou editar.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Recursos & Capacidade</h1>
           <p className="text-sm text-muted-foreground">Gestão de pessoas, carga de trabalho e deteção de conflitos</p>
         </div>
-        <ResourceFormDialog onAdd={(r) => setResourcesList([...resourcesList, r])} />
+        {!isCollaborator && <ResourceFormDialog onAdd={(r) => setResourcesList([...resourcesList, r])} />}
       </div>
 
       <ResourceCapacityCards />
