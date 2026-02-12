@@ -1,11 +1,14 @@
 import { Search, Bell, Settings, HelpCircle, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const TopBar = () => {
   const { user, signOut } = useAuth();
+  const { role } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -58,7 +61,14 @@ const TopBar = () => {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-md">
             {initials}
           </div>
-          <span className="text-sm font-semibold text-foreground">{displayName}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-foreground leading-tight">{displayName}</span>
+            {role && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 w-fit capitalize">
+                {role === "admin" ? "Administrador" : role === "manager" ? "Gestor" : "Colaborador"}
+              </Badge>
+            )}
+          </div>
         </div>
         <button
           onClick={handleSignOut}

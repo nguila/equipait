@@ -40,13 +40,13 @@ const App = () => (
               }
             >
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projetos" element={<ProjectsPage />} />
-              <Route path="/recursos" element={<ResourcesPage />} />
-              <Route path="/inventario" element={<InventoryPage />} />
-              <Route path="/frota" element={<FleetPage />} />
-              <Route path="/documentos" element={<DocumentsPage />} />
-              <Route path="/relatorios" element={<ReportsPage />} />
-              <Route path="/utilizadores" element={<UsersPage />} />
+              <Route path="/projetos" element={<ProtectedRoute requiredAccess="/projetos"><ProjectsPage /></ProtectedRoute>} />
+              <Route path="/recursos" element={<ProtectedRoute requiredAccess="/recursos"><ResourcesPage /></ProtectedRoute>} />
+              <Route path="/inventario" element={<ProtectedRoute requiredAccess="/inventario"><InventoryPage /></ProtectedRoute>} />
+              <Route path="/frota" element={<ProtectedRoute requiredAccess="/frota"><FleetPage /></ProtectedRoute>} />
+              <Route path="/documentos" element={<ProtectedRoute requiredAccess="/documentos"><DocumentsPage /></ProtectedRoute>} />
+              <Route path="/relatorios" element={<ProtectedRoute requiredAccess="/relatorios"><ReportsPage /></ProtectedRoute>} />
+              <Route path="/utilizadores" element={<ProtectedRoute requiredAccess="/utilizadores"><UsersPage /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
