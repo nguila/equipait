@@ -10,13 +10,12 @@ import LandingPage from "@/pages/LandingPage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import Dashboard from "@/pages/Dashboard";
-import ProjectsPage from "@/pages/ProjectsPage";
-import ResourcesPage from "@/pages/ResourcesPage";
+import ServicosPage from "@/pages/ServicosPage";
+import ProjectosPage from "@/pages/ProjectosPage";
 import InventoryPage from "@/pages/InventoryPage";
+import EconomatoPage from "@/pages/EconomatoPage";
 import HelpdeskPage from "@/pages/HelpdeskPage";
-import FleetPage from "@/pages/FleetPage";
 import DocumentsPage from "@/pages/DocumentsPage";
-import ReportsPage from "@/pages/ReportsPage";
 import UsersPage from "@/pages/UsersPage";
 import NotFound from "./pages/NotFound";
 
@@ -41,13 +40,12 @@ const App = () => (
               }
             >
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projetos" element={<ProtectedRoute requiredAccess="/projetos"><ProjectsPage /></ProtectedRoute>} />
-              <Route path="/recursos" element={<ProtectedRoute requiredAccess="/recursos"><ResourcesPage /></ProtectedRoute>} />
+              <Route path="/servicos" element={<ProtectedRoute requiredAccess="/servicos"><ServicosPage /></ProtectedRoute>} />
+              <Route path="/projectos" element={<ProtectedRoute requiredAccess="/projectos"><ProjectosPage /></ProtectedRoute>} />
               <Route path="/inventario" element={<ProtectedRoute requiredAccess="/inventario"><InventoryPage /></ProtectedRoute>} />
+              <Route path="/economato" element={<ProtectedRoute requiredAccess="/economato"><EconomatoPage /></ProtectedRoute>} />
               <Route path="/helpdesk" element={<ProtectedRoute requiredAccess="/helpdesk"><HelpdeskPage /></ProtectedRoute>} />
-              <Route path="/frota" element={<ProtectedRoute requiredAccess="/frota"><FleetPage /></ProtectedRoute>} />
               <Route path="/documentos" element={<ProtectedRoute requiredAccess="/documentos"><DocumentsPage /></ProtectedRoute>} />
-              <Route path="/relatorios" element={<ProtectedRoute requiredAccess="/relatorios"><ReportsPage /></ProtectedRoute>} />
               <Route path="/utilizadores" element={<ProtectedRoute requiredAccess="/utilizadores"><UsersPage /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
