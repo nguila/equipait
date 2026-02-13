@@ -1,109 +1,193 @@
-import { useState } from "react";
-import { resources, departments } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Users, Settings, Plus, Pencil } from "lucide-react";
-import StatusBadge from "@/components/shared/StatusBadge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Shield, Users, Pencil, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { ALL_MODULES } from "@/hooks/useUserRole";
 
-type AppRole = "admin" | "gestor_portfolio" | "gestor_departamento" | "gestor_projeto" | "colaborador" | "leitura";
+type AppRole = "admin" | "manager" | "collaborator";
 
-interface UserAccount {
-  id: string;
-  resourceId: string;
-  name: string;
-  email: string;
+interface UserRow {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  is_active: boolean;
   role: AppRole;
-  departmentId: string;
-  isActive: boolean;
+  department_name: string | null;
 }
 
-interface RoleDefinition {
-  id: AppRole;
-  label: string;
-  description: string;
-  permissions: string[];
+interface PermissionRow {
+  module: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
 }
 
-const roleDefinitions: RoleDefinition[] = [
-  { id: "admin", label: "Administrador Global", description: "Acesso total ao sistema", permissions: ["Gestão de utilizadores", "Todos os projetos", "Orçamentos", "Configurações"] },
-  { id: "gestor_portfolio", label: "Gestor de Portefólio", description: "Gestão de todos os projetos", permissions: ["Ver todos os projetos", "Criar projetos", "Gerir recursos", "Ver orçamentos"] },
-  { id: "gestor_departamento", label: "Gestor de Departamento", description: "Gestão do seu departamento", permissions: ["Projetos do departamento", "Recursos do departamento", "Inventário departamental"] },
-  { id: "gestor_projeto", label: "Gestor de Projeto", description: "Gestão dos seus projetos", permissions: ["Tarefas do projeto", "Equipa do projeto", "Documentos do projeto"] },
-  { id: "colaborador", label: "Colaborador", description: "Participação em projetos", permissions: ["Ver tarefas atribuídas", "Registar horas", "Ver documentos"] },
-  { id: "leitura", label: "Apenas Leitura", description: "Visualização sem edição", permissions: ["Ver projetos", "Ver relatórios"] },
-];
+const MODULE_LABELS: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/servicos": "Serviços",
+  "/projectos": "Projectos",
+  "/inventario": "Inventário",
+  "/economato": "Economato",
+  "/helpdesk": "Helpdesk",
+  "/documentos": "Documentos",
+  "/utilizadores": "Utilizadores",
+};
 
-const roleColors: Record<AppRole, string> = {
-  admin: "bg-destructive/10 text-destructive",
-  gestor_portfolio: "bg-primary/10 text-primary",
-  gestor_departamento: "bg-warning/10 text-warning",
-  gestor_projeto: "bg-success/10 text-success",
-  colaborador: "bg-secondary text-secondary-foreground",
-  leitura: "bg-muted text-muted-foreground",
+const ROLE_LABELS: Record<AppRole, string> = {
+  admin: "Administrador",
+  manager: "Gestor",
+  collaborator: "Colaborador",
 };
 
 const UsersPage = () => {
-  const [users, setUsers] = useState<UserAccount[]>(
-    resources.map((r, i) => ({
-      id: `u${r.id}`,
-      resourceId: r.id,
-      name: r.name,
-      email: r.email,
-      role: i === 0 ? "admin" : i < 3 ? "gestor_projeto" : "colaborador",
-      departmentId: r.departmentId,
-      isActive: r.status === "ativo",
-    }))
-  );
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editPerms, setEditPerms] = useState<PermissionRow[]>([]);
+  const [savingPerms, setSavingPerms] = useState(false);
 
-  const [editUser, setEditUser] = useState<UserAccount | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "colaborador" as AppRole, departmentId: "" });
+  const fetchUsers = async () => {
+    setLoading(true);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, email, is_active, department_id");
 
-  const handleRoleChange = (userId: string, role: AppRole) => {
-    setUsers(users.map((u) => u.id === userId ? { ...u, role } : u));
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+
+    const { data: depts } = await supabase
+      .from("departments")
+      .select("id, name");
+
+    const roleMap = new Map((roles || []).map((r) => [r.user_id, r.role as AppRole]));
+    const deptMap = new Map((depts || []).map((d) => [d.id, d.name]));
+
+    const merged: UserRow[] = (profiles || []).map((p) => ({
+      user_id: p.user_id,
+      full_name: p.full_name,
+      email: p.email,
+      is_active: p.is_active,
+      role: roleMap.get(p.user_id) || "collaborator",
+      department_name: p.department_id ? deptMap.get(p.department_id) || null : null,
+    }));
+
+    setUsers(merged);
+    setLoading(false);
   };
 
-  const handleToggleActive = (userId: string) => {
-    setUsers(users.map((u) => u.id === userId ? { ...u, isActive: !u.isActive } : u));
+  useEffect(() => { fetchUsers(); }, []);
+
+  const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    const { error } = await supabase
+      .from("user_roles")
+      .update({ role: newRole })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Erro ao atualizar função");
+    } else {
+      toast.success("Função atualizada");
+      setUsers(users.map((u) => u.user_id === userId ? { ...u, role: newRole } : u));
+    }
   };
 
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUser.name || !newUser.email || !newUser.departmentId) return;
-    setUsers([...users, {
-      id: `u${Date.now()}`,
-      resourceId: "",
-      name: newUser.name.trim(),
-      email: newUser.email.trim(),
-      role: newUser.role,
-      departmentId: newUser.departmentId,
-      isActive: true,
-    }]);
-    setNewUser({ name: "", email: "", role: "colaborador", departmentId: "" });
-    setAddOpen(false);
+  const handleToggleActive = async (userId: string, active: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_active: active })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Erro ao atualizar estado");
+    } else {
+      setUsers(users.map((u) => u.user_id === userId ? { ...u, is_active: active } : u));
+    }
   };
+
+  const openPermissions = async (user: UserRow) => {
+    setEditUser(user);
+    const { data } = await supabase
+      .from("user_permissions")
+      .select("module, can_view, can_create, can_edit, can_delete")
+      .eq("user_id", user.user_id);
+
+    const existing = new Map((data || []).map((p) => [p.module, p]));
+    const perms: PermissionRow[] = ALL_MODULES.map((m) => ({
+      module: m,
+      can_view: existing.get(m)?.can_view ?? false,
+      can_create: existing.get(m)?.can_create ?? false,
+      can_edit: existing.get(m)?.can_edit ?? false,
+      can_delete: existing.get(m)?.can_delete ?? false,
+    }));
+    setEditPerms(perms);
+  };
+
+  const handlePermChange = (module: string, field: keyof PermissionRow, value: boolean) => {
+    setEditPerms(editPerms.map((p) =>
+      p.module === module ? { ...p, [field]: value } : p
+    ));
+  };
+
+  const savePermissions = async () => {
+    if (!editUser) return;
+    setSavingPerms(true);
+
+    // Delete existing and re-insert
+    await supabase.from("user_permissions").delete().eq("user_id", editUser.user_id);
+
+    const rows = editPerms
+      .filter((p) => p.can_view || p.can_create || p.can_edit || p.can_delete)
+      .map((p) => ({
+        user_id: editUser.user_id,
+        module: p.module,
+        can_view: p.can_view,
+        can_create: p.can_create,
+        can_edit: p.can_edit,
+        can_delete: p.can_delete,
+      }));
+
+    if (rows.length > 0) {
+      const { error } = await supabase.from("user_permissions").insert(rows);
+      if (error) {
+        toast.error("Erro ao guardar permissões");
+        setSavingPerms(false);
+        return;
+      }
+    }
+
+    toast.success("Permissões guardadas");
+    setSavingPerms(false);
+    setEditUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Utilizadores & Permissões</h1>
-          <p className="text-sm text-muted-foreground">Gestão de acessos e controlo de funções (RBAC)</p>
-        </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4" /> Novo Utilizador
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Utilizadores & Permissões</h1>
+        <p className="text-sm text-muted-foreground">Gestão granular de acessos por utilizador e módulo</p>
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList>
           <TabsTrigger value="users" className="gap-1.5"><Users className="h-3.5 w-3.5" /> Utilizadores</TabsTrigger>
-          <TabsTrigger value="roles" className="gap-1.5"><Shield className="h-3.5 w-3.5" /> Funções & Permissões</TabsTrigger>
+          <TabsTrigger value="roles" className="gap-1.5"><Shield className="h-3.5 w-3.5" /> Funções</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
@@ -115,75 +199,74 @@ const UsersPage = () => {
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Departamento</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Função</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Permissões</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {users.map((user) => {
-                  const dept = departments.find((d) => d.id === user.departmentId);
-                  const roleDef = roleDefinitions.find((r) => r.id === user.role);
-                  return (
-                    <tr key={user.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                            {user.name.split(" ").map((n) => n[0]).join("")}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-card-foreground">{user.name}</p>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
-                          </div>
+                {users.map((user) => (
+                  <tr key={user.user_id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {(user.full_name || "?").split(" ").map((n) => n[0]).join("").slice(0, 2)}
                         </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{dept?.name || "—"}</td>
-                      <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${roleColors[user.role]}`}>
-                          {roleDef?.label}
+                        <div>
+                          <p className="text-sm font-medium text-card-foreground">{user.full_name || "Sem nome"}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground">{user.department_name || "—"}</td>
+                    <td className="px-5 py-3.5">
+                      <Select value={user.role} onValueChange={(v) => handleRoleChange(user.user_id, v as AppRole)}>
+                        <SelectTrigger className="w-36 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(["admin", "manager", "collaborator"] as AppRole[]).map((r) => (
+                            <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <Switch checked={user.is_active} onCheckedChange={(v) => handleToggleActive(user.user_id, v)} />
+                        <span className={`text-xs ${user.is_active ? "text-success" : "text-muted-foreground"}`}>
+                          {user.is_active ? "Ativo" : "Inativo"}
                         </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <Switch checked={user.isActive} onCheckedChange={() => handleToggleActive(user.id)} />
-                          <span className={`text-xs ${user.isActive ? "text-success" : "text-muted-foreground"}`}>
-                            {user.isActive ? "Ativo" : "Inativo"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setEditUser(user)}>
-                          <Pencil className="h-3.5 w-3.5" /> Editar
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => openPermissions(user)}>
+                        <Pencil className="h-3.5 w-3.5" /> Configurar
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </TabsContent>
 
         <TabsContent value="roles">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {roleDefinitions.map((role) => {
-              const count = users.filter((u) => u.role === role.id).length;
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(["admin", "manager", "collaborator"] as AppRole[]).map((role) => {
+              const count = users.filter((u) => u.role === role).length;
               return (
-                <div key={role.id} className="rounded-xl border border-border bg-card p-5 hover-lift">
+                <div key={role} className="rounded-xl border border-border bg-card p-5 hover-lift">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-bold text-card-foreground">{role.label}</h3>
+                      <h3 className="text-sm font-bold text-card-foreground">{ROLE_LABELS[role]}</h3>
                     </div>
                     <span className="text-xs text-muted-foreground">{count} utilizador{count !== 1 ? "es" : ""}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">{role.description}</p>
-                  <div className="space-y-1">
-                    {role.permissions.map((p) => (
-                      <div key={p} className="flex items-center gap-1.5 text-xs text-card-foreground">
-                        <div className="h-1 w-1 rounded-full bg-primary" />
-                        {p}
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {role === "admin" && "Acesso total ao sistema, gestão de utilizadores e permissões"}
+                    {role === "manager" && "Gestão operacional, acesso a todos os módulos exceto administração"}
+                    {role === "collaborator" && "Acesso limitado aos módulos atribuídos pelo administrador"}
+                  </p>
                 </div>
               );
             })}
@@ -191,72 +274,40 @@ const UsersPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Role Dialog */}
+      {/* Permissions Dialog */}
       <Dialog open={!!editUser} onOpenChange={() => setEditUser(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Editar Função - {editUser?.name}</DialogTitle>
+            <DialogTitle>Permissões — {editUser?.full_name}</DialogTitle>
           </DialogHeader>
-          {editUser && (
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Função</Label>
-                <Select value={editUser.role} onValueChange={(v) => {
-                  handleRoleChange(editUser.id, v as AppRole);
-                  setEditUser({ ...editUser, role: v as AppRole });
-                }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {roleDefinitions.map((r) => <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+          <div className="space-y-3">
+            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-muted-foreground uppercase border-b border-border pb-2">
+              <span className="col-span-1">Módulo</span>
+              <span className="text-center">Ver</span>
+              <span className="text-center">Criar</span>
+              <span className="text-center">Editar</span>
+              <span className="text-center">Eliminar</span>
+            </div>
+            {editPerms.map((perm) => (
+              <div key={perm.module} className="grid grid-cols-5 gap-2 items-center">
+                <span className="text-sm font-medium">{MODULE_LABELS[perm.module] || perm.module}</span>
+                {(["can_view", "can_create", "can_edit", "can_delete"] as const).map((field) => (
+                  <div key={field} className="flex justify-center">
+                    <Checkbox
+                      checked={perm[field]}
+                      onCheckedChange={(v) => handlePermChange(perm.module, field, !!v)}
+                    />
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-end">
-                <Button onClick={() => setEditUser(null)}>Guardar</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add User Dialog */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Novo Utilizador</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddUser} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Nome *</Label>
-              <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} maxLength={100} required />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Email *</Label>
-              <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} maxLength={255} required />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Departamento *</Label>
-              <Select value={newUser.departmentId} onValueChange={(v) => setNewUser({ ...newUser, departmentId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Função</Label>
-              <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v as AppRole })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {roleDefinitions.map((r) => <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
-              <Button type="submit">Criar Utilizador</Button>
-            </div>
-          </form>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2 pt-3">
+            <Button variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
+            <Button onClick={savePermissions} disabled={savingPerms}>
+              {savingPerms ? "A guardar..." : "Guardar Permissões"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

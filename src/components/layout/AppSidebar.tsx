@@ -1,25 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
+  Wrench,
+  FolderKanban,
   Package,
-  Truck,
+  ShoppingCart,
+  Headphones,
   FileText,
-  BarChart3,
   Shield,
   ChevronLeft,
   ChevronRight,
-  Headphones,
 } from "lucide-react";
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Wrench, label: "Serviços", path: "/servicos" },
+  { icon: FolderKanban, label: "Projectos", path: "/projectos" },
   { icon: Package, label: "Inventário", path: "/inventario" },
+  { icon: ShoppingCart, label: "Economato", path: "/economato" },
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
-  { icon: Truck, label: "Frota", path: "/frota" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
-  { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
   { icon: Shield, label: "Utilizadores", path: "/utilizadores" },
 ];
 
