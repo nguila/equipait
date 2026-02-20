@@ -13,6 +13,7 @@ export const ALL_MODULES = [
   "/helpdesk",
   "/documentos",
   "/utilizadores",
+  "/administracao",
 ] as const;
 
 export type ModulePath = (typeof ALL_MODULES)[number];

@@ -8,8 +8,10 @@ import {
   Headphones,
   FileText,
   Shield,
+  Settings,
   ChevronLeft,
   ChevronRight,
+  Monitor,
 } from "lucide-react";
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -23,6 +25,7 @@ const navItems = [
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
   { icon: Shield, label: "Utilizadores", path: "/utilizadores" },
+  { icon: Settings, label: "Administração", path: "/administracao" },
 ];
 
 const AppSidebar = () => {
@@ -44,9 +47,9 @@ const AppSidebar = () => {
              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary shadow-lg">
                <Package className="h-4 w-4 text-white font-bold" />
              </div>
-              <span className="text-sm font-bold text-white tracking-wide">
-                ERP Data CoLAB
-              </span>
+               <span className="text-sm font-bold text-white tracking-wide">
+                 IT Data CoLAB
+               </span>
            </div>
          )}
          {collapsed && (

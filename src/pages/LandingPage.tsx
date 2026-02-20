@@ -83,9 +83,9 @@ const LandingPage = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary shadow-md">
               <FolderKanban className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              ERP Data CoLAB
-            </span>
+             <span className="text-lg font-bold tracking-tight text-foreground">
+               Departamento IT Data CoLAB
+             </span>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -109,7 +109,7 @@ const LandingPage = () => {
         <div className="relative mx-auto max-w-7xl px-6 py-24 text-center lg:py-32">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
             <Zap className="h-3.5 w-3.5" />
-            Plataforma ERP Integrada
+            Plataforma IT Integrada
           </div>
           <h1 className="mx-auto max-w-4xl text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Gestão inteligente para{" "}
@@ -195,7 +195,7 @@ const LandingPage = () => {
           <div className="grid items-center gap-16 lg:grid-cols-2">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Porquê escolher o ERP Data CoLAB?
+                Porquê escolher o IT Data CoLAB?
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Desenhado para equipas que precisam de agilidade sem sacrificar o controlo.
@@ -252,8 +252,8 @@ const LandingPage = () => {
             Pronto para transformar a sua gestão?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sidebar-foreground/80">
-            Junte-se às equipas que já utilizam o ERP Data CoLAB para otimizar operações e
-            impulsionar resultados.
+             Junte-se às equipas que já utilizam o IT Data CoLAB para otimizar operações e
+             impulsionar resultados.
           </p>
           <Button
             size="lg"
@@ -261,7 +261,7 @@ const LandingPage = () => {
             className="mt-8 h-12 px-8 text-base font-semibold shadow-lg"
             onClick={() => navigate("/auth")}
           >
-            Aceder ao ERP
+            Aceder à Plataforma
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -272,7 +272,7 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2">
             <FolderKanban className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">ERP Data CoLAB</span>
+            <span className="text-sm font-semibold text-foreground">IT Data CoLAB</span>
           </div>
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Data CoLAB. Todos os direitos reservados.
