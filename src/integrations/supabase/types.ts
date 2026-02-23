@@ -71,6 +71,59 @@ export type Database = {
         }
         Relationships: []
       }
+      document_custom_fields: {
+        Row: {
+          created_at: string
+          document_id: string
+          field_name: string
+          field_value: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          field_name: string
+          field_value?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          field_name?: string
+          field_value?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_custom_fields_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -78,6 +131,7 @@ export type Database = {
           department_id: string | null
           description: string | null
           id: string
+          knowledge_area_id: string | null
           status: string
           tags: string[] | null
           title: string
@@ -91,6 +145,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           id?: string
+          knowledge_area_id?: string | null
           status?: string
           tags?: string[] | null
           title: string
@@ -104,6 +159,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           id?: string
+          knowledge_area_id?: string | null
           status?: string
           tags?: string[] | null
           title?: string
@@ -119,7 +175,35 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_knowledge_area_id_fkey"
+            columns: ["knowledge_area_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_areas"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      knowledge_areas: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

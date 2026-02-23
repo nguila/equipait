@@ -10,6 +10,7 @@ import WarehouseManager from "@/components/inventory/WarehouseManager";
 import OrdersTable from "@/components/inventory/OrdersTable";
 import StockStatusCards from "@/components/inventory/StockStatusCards";
 import ExcelImportExport from "@/components/inventory/ExcelImportExport";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
@@ -68,7 +69,20 @@ const InventoryPage = () => {
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <ExcelImportExport products={products} onImport={handleImportProducts} />
+              <ImportExportBar
+                data={filtered}
+                columns={[
+                  { key: "code", label: "Código" },
+                  { key: "name", label: "Nome" },
+                  { key: "category", label: "Categoria" },
+                  { key: "location", label: "Localização" },
+                  { key: "totalQty", label: "Qtd. Total" },
+                  { key: "availableQty", label: "Qtd. Disponível" },
+                  { key: "status", label: "Estado" },
+                ]}
+                moduleName="Inventário"
+                onImport={handleImportProducts as any}
+              />
               <ProductFormDialog onAdd={handleAddProduct} />
             </div>
           </div>
