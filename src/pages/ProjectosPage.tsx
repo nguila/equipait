@@ -1,6 +1,7 @@
 import { FolderKanban, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 
 const ProjectosPage = () => {
   return (
@@ -10,10 +11,13 @@ const ProjectosPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Projectos</h1>
           <p className="text-sm text-muted-foreground">Gestão de projectos e tarefas</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Projecto
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportBar data={[]} columns={[]} moduleName="Projectos" />
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Projecto
+          </Button>
+        </div>
       </div>
 
       <Card>

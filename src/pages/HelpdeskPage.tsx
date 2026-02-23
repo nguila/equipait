@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import TicketFormDialog from "@/components/helpdesk/TicketFormDialog";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 
 interface Ticket {
   id: string;
@@ -50,6 +51,15 @@ const statusLabels: Record<string, string> = {
   resolved: "Resolvido",
   closed: "Fechado",
 };
+
+const exportColumns = [
+  { key: "ticket_number", label: "Nº Ticket" },
+  { key: "title", label: "Título" },
+  { key: "status", label: "Estado" },
+  { key: "priority", label: "Prioridade" },
+  { key: "category", label: "Categoria" },
+  { key: "created_at", label: "Data Criação" },
+];
 
 const HelpdeskPage = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -129,10 +139,13 @@ const HelpdeskPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Helpdesk</h1>
           <p className="text-sm text-muted-foreground">Gestão de tickets de suporte</p>
         </div>
-        <Button className="gap-2" onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Novo Ticket
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportBar data={filtered} columns={exportColumns} moduleName="Helpdesk" />
+          <Button className="gap-2" onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Novo Ticket
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

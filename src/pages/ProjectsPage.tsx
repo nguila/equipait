@@ -11,6 +11,7 @@ import TaskKanbanView from "@/components/projects/TaskKanbanView";
 import TaskTimelineView from "@/components/projects/TaskTimelineView";
 import ProjectFormDialog from "@/components/projects/ProjectFormDialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 
 const ProjectsPage = () => {
   const [projectsList, setProjectsList] = useState<Project[]>(initialProjects);
@@ -44,7 +45,20 @@ const ProjectsPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Projetos</h1>
           <p className="text-sm text-muted-foreground">Portefólio de projetos da organização</p>
         </div>
-        {!isCollaborator && <ProjectFormDialog onAdd={(p) => setProjectsList([...projectsList, p])} />}
+        <div className="flex items-center gap-2">
+          <ImportExportBar
+            data={filtered}
+            columns={[
+              { key: "name", label: "Projeto" },
+              { key: "code", label: "Código" },
+              { key: "status", label: "Estado" },
+              { key: "priority", label: "Prioridade" },
+              { key: "progress", label: "Progresso %" },
+            ]}
+            moduleName="Projetos"
+          />
+          {!isCollaborator && <ProjectFormDialog onAdd={(p) => setProjectsList([...projectsList, p])} />}
+        </div>
       </div>
 
       {/* Filters */}

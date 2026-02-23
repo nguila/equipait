@@ -1,6 +1,7 @@
 import { ShoppingCart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 
 const EconomatoPage = () => {
   return (
@@ -10,10 +11,13 @@ const EconomatoPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Economato</h1>
           <p className="text-sm text-muted-foreground">Gestão de compras e fornecedores</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Requisição
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportBar data={[]} columns={[]} moduleName="Economato" />
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nova Requisição
+          </Button>
+        </div>
       </div>
 
       <Card>

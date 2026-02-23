@@ -1,6 +1,7 @@
 import { Wrench, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import ImportExportBar from "@/components/shared/ImportExportBar";
 
 const ServicosPage = () => {
   return (
@@ -10,10 +11,13 @@ const ServicosPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Serviços</h1>
           <p className="text-sm text-muted-foreground">Gestão de serviços e manutenção</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Serviço
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportBar data={[]} columns={[]} moduleName="Servicos" />
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Serviço
+          </Button>
+        </div>
       </div>
 
       <Card>
