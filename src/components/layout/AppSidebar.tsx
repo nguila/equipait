@@ -48,7 +48,7 @@ const AppSidebar = () => {
                <Package className="h-4 w-4 text-white font-bold" />
              </div>
                <span className="text-sm font-bold text-white tracking-wide">
-                 IT Data CoLAB
+                 TI Data CoLAB
                </span>
            </div>
          )}
