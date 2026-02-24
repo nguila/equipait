@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TicketFormDialog from "@/components/helpdesk/TicketFormDialog";
 import ReportsTab from "@/components/helpdesk/ReportsTab";
 import ImportExportBar from "@/components/shared/ImportExportBar";
+import TechnicianProfileDialog from "@/components/helpdesk/TechnicianProfileDialog";
 import { toast } from "sonner";
 
 
@@ -86,6 +87,7 @@ const HelpdeskPage = () => {
   // Technician form
   const [techDialogOpen, setTechDialogOpen] = useState(false);
   const [techForm, setTechForm] = useState({ user_id: "", department_id: "" });
+  const [selectedTech, setSelectedTech] = useState<typeof profiles[0] | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -287,7 +289,7 @@ const HelpdeskPage = () => {
                       const dept = departments.find((d) => d.id === tech.department_id);
                       const assignedCount = tickets.filter((t) => t.assigned_to === tech.user_id).length;
                       return (
-                        <TableRow key={tech.user_id}>
+                        <TableRow key={tech.user_id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelectedTech(tech)}>
                           <TableCell className="font-medium">{tech.full_name || "Sem nome"}</TableCell>
                           <TableCell className="text-muted-foreground">{tech.email}</TableCell>
                           <TableCell>{dept ? <Badge variant="outline">{dept.name}</Badge> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
@@ -331,6 +333,15 @@ const HelpdeskPage = () => {
               </div>
             </DialogContent>
           </Dialog>
+
+
+          <TechnicianProfileDialog
+            open={!!selectedTech}
+            onOpenChange={(open) => !open && setSelectedTech(null)}
+            technician={selectedTech}
+            tickets={tickets}
+            departments={departments}
+          />
         </TabsContent>
 
         {/* ---- DEPARTAMENTOS TAB ---- */}
