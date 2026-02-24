@@ -7,7 +7,6 @@ import {
   
   Headphones,
   FileText,
-  Shield,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -23,7 +22,6 @@ const navItems = [
   { icon: Package, label: "Inventário", path: "/inventario" },
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
-  { icon: Shield, label: "Utilizadores", path: "/utilizadores" },
   { icon: Settings, label: "Administração", path: "/administracao" },
 ];
 
