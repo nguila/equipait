@@ -14,7 +14,7 @@ import Dashboard from "@/pages/Dashboard";
 import ServicosPage from "@/pages/ServicosPage";
 import ProjectosPage from "@/pages/ProjectosPage";
 import InventoryPage from "@/pages/InventoryPage";
-import EconomatoPage from "@/pages/EconomatoPage";
+
 import HelpdeskPage from "@/pages/HelpdeskPage";
 import DocumentsPage from "@/pages/DocumentsPage";
 import UsersPage from "@/pages/UsersPage";
@@ -46,7 +46,7 @@ const App = () => (
               <Route path="/servicos" element={<ProtectedRoute requiredAccess="/servicos"><ServicosPage /></ProtectedRoute>} />
               <Route path="/projectos" element={<ProtectedRoute requiredAccess="/projectos"><ProjectosPage /></ProtectedRoute>} />
               <Route path="/inventario" element={<ProtectedRoute requiredAccess="/inventario"><InventoryPage /></ProtectedRoute>} />
-              <Route path="/economato" element={<ProtectedRoute requiredAccess="/economato"><EconomatoPage /></ProtectedRoute>} />
+              
               <Route path="/helpdesk" element={<ProtectedRoute requiredAccess="/helpdesk"><HelpdeskPage /></ProtectedRoute>} />
               <Route path="/documentos" element={<ProtectedRoute requiredAccess="/documentos"><DocumentsPage /></ProtectedRoute>} />
               <Route path="/utilizadores" element={<ProtectedRoute requiredAccess="/utilizadores"><UsersPage /></ProtectedRoute>} />
