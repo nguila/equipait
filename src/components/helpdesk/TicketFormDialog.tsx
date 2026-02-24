@@ -80,10 +80,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     setSubmitting(true);
 
     try {
-      // Build tags with equipment and OS info
       const extraTags: string[] = [...form.tags];
-      if (form.equipment_type) extraTags.push(`equip:${form.equipment_type}`);
-      if (form.operating_system) extraTags.push(`os:${form.operating_system}`);
 
       // Combine date and time for due_date
       let dueDate: string | null = null;
@@ -105,7 +102,9 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
           sla_hours: form.sla_hours ? parseInt(form.sla_hours) : null,
           tags: extraTags,
           related_ticket_id: form.related_ticket_id || null,
-        })
+          equipment_type: form.equipment_type || null,
+          operating_system: form.operating_system || null,
+        } as any)
         .select("id")
         .single();
 

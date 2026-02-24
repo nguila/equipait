@@ -192,6 +192,21 @@ const DocumentsPage = () => {
     fetchData();
   };
 
+  const deleteDocument = async (id: string) => {
+    if (!confirm("Eliminar documento?")) return;
+    // Delete attachments first
+    const docAtts = attachments.filter(a => a.entity_id === id);
+    for (const att of docAtts) {
+      await supabase.storage.from("attachments").remove([att.file_path]);
+      await supabase.from("attachments").delete().eq("id", att.id);
+    }
+    await supabase.from("document_custom_fields").delete().eq("document_id", id);
+    const { error } = await supabase.from("documents").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Documento eliminado");
+    fetchData();
+  };
+
   const exportColumns = [
     { key: "title", label: "Título" },
     { key: "type", label: "Tipo" },
@@ -249,7 +264,8 @@ const DocumentsPage = () => {
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Área</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Anexos</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tags</th>
+                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tags</th>
+                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -290,6 +306,11 @@ const DocumentsPage = () => {
                               <span key={t} className="bg-secondary px-1.5 py-0.5 rounded text-[10px] font-medium text-secondary-foreground">{t}</span>
                             ))}
                           </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <Button size="icon" variant="ghost" onClick={() => deleteDocument(doc.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </td>
                       </tr>
                     );

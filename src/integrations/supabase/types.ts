@@ -287,7 +287,9 @@ export type Database = {
           department_id: string | null
           description: string | null
           due_date: string | null
+          equipment_type: string | null
           id: string
+          operating_system: string | null
           priority: string
           related_ticket_id: string | null
           sla_hours: number | null
@@ -305,7 +307,9 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           due_date?: string | null
+          equipment_type?: string | null
           id?: string
+          operating_system?: string | null
           priority?: string
           related_ticket_id?: string | null
           sla_hours?: number | null
@@ -323,7 +327,9 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           due_date?: string | null
+          equipment_type?: string | null
           id?: string
+          operating_system?: string | null
           priority?: string
           related_ticket_id?: string | null
           sla_hours?: number | null

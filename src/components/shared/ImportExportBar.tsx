@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Upload, FileDown } from "lucide-react";
+import { Download, Upload, FileDown, Database } from "lucide-react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -54,6 +54,26 @@ const ImportExportBar = ({ data, columns, moduleName, onImport }: ImportExportBa
     toast.success("Ficheiro PDF exportado.");
   };
 
+  const exportToPowerBI = () => {
+    // Export as CSV (Power BI compatible format)
+    const headers = columns.map((c) => c.label).join(",");
+    const rows = data.map((item) =>
+      columns.map((c) => {
+        const val = String(item[c.key] ?? "").replace(/"/g, '""');
+        return `"${val}"`;
+      }).join(",")
+    );
+    const csv = [headers, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${moduleName.toLowerCase().replace(/\s/g, "_")}_powerbi_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Ficheiro CSV para Power BI exportado.");
+  };
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onImport) return;
@@ -63,7 +83,6 @@ const ImportExportBar = ({ data, columns, moduleName, onImport }: ImportExportBa
         const wb = XLSX.read(evt.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
-        // Map header labels back to keys
         const mapped = rows.map((row) => {
           const mapped: Record<string, any> = {};
           for (const col of columns) {
@@ -88,6 +107,9 @@ const ImportExportBar = ({ data, columns, moduleName, onImport }: ImportExportBa
       </Button>
       <Button size="sm" variant="outline" className="gap-1.5" onClick={exportToPDF}>
         <FileDown className="h-4 w-4" /> PDF
+      </Button>
+      <Button size="sm" variant="outline" className="gap-1.5" onClick={exportToPowerBI}>
+        <Database className="h-4 w-4" /> Power BI
       </Button>
       {onImport && (
         <>
