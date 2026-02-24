@@ -419,6 +419,7 @@ export type Database = {
     }
     Functions: {
       can_access_attachment: { Args: { file_path: string }; Returns: boolean }
+      get_my_department_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
