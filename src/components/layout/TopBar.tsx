@@ -1,16 +1,18 @@
-import { Search, Bell, Settings, HelpCircle, LogOut } from "lucide-react";
+import { Search, Bell, Settings, HelpCircle, LogOut, Moon, Sun } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useTheme } from "@/hooks/useTheme";
 
 const TopBar = () => {
   const { user, signOut } = useAuth();
   const { role } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,6 +41,13 @@ const TopBar = () => {
           title="Ajuda"
         >
           <HelpCircle className="h-5 w-5" />
+        </button>
+        <button
+          onClick={toggleTheme}
+          className="relative rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+          title={theme === "light" ? "Modo escuro" : "Modo claro"}
+        >
+          {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </button>
         <button
           className="relative rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
