@@ -8,15 +8,20 @@ import {
   AlertTriangle,
   CheckCircle2,
   Loader2,
-  Users,
   Monitor,
   Wrench,
+  Search,
+  Filter,
+  Bell,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface TicketStats {
   total: number;
@@ -72,8 +77,24 @@ const quickLinks = [
 const Dashboard = () => {
   const { hasAccess } = useUserRole();
   const [stats, setStats] = useState<TicketStats>({ total: 0, open: 0, inProgress: 0, resolved: 0, critical: 0 });
-  const [recentTickets, setRecentTickets] = useState<any[]>([]);
+  const [allTickets, setAllTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+
+  const processTickets = useCallback((tickets: any[]) => {
+    setStats({
+      total: tickets.length,
+      open: tickets.filter((t) => t.status === "open").length,
+      inProgress: tickets.filter((t) => t.status === "in_progress").length,
+      resolved: tickets.filter((t) => t.status === "resolved" || t.status === "closed").length,
+      critical: tickets.filter((t) => t.priority === "critical" || t.priority === "high").length,
+    });
+    setAllTickets(tickets);
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -83,20 +104,60 @@ const Dashboard = () => {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (tickets) {
-        setStats({
-          total: tickets.length,
-          open: tickets.filter((t) => t.status === "open").length,
-          inProgress: tickets.filter((t) => t.status === "in_progress").length,
-          resolved: tickets.filter((t) => t.status === "resolved" || t.status === "closed").length,
-          critical: tickets.filter((t) => t.priority === "critical" || t.priority === "high").length,
-        });
-        setRecentTickets(tickets.slice(0, 8));
-      }
+      if (tickets) processTickets(tickets);
       setLoading(false);
     };
     fetchStats();
-  }, []);
+
+    // Real-time subscription
+    const channel = supabase
+      .channel("dashboard-tickets")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tickets" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const newTicket = payload.new as any;
+            toast.info(`Novo ticket criado: ${newTicket.title}`, {
+              icon: <Bell className="h-4 w-4" />,
+              duration: 5000,
+            });
+            setAllTickets((prev) => {
+              const updated = [newTicket, ...prev].slice(0, 50);
+              processTickets(updated);
+              return updated;
+            });
+          } else if (payload.eventType === "UPDATE") {
+            const updated = payload.new as any;
+            toast.info(`Ticket #${updated.ticket_number} atualizado`, {
+              icon: <Bell className="h-4 w-4" />,
+              duration: 4000,
+            });
+            setAllTickets((prev) => {
+              const newList = prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t));
+              processTickets(newList);
+              return newList;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [processTickets]);
+
+  // Filtered tickets
+  const filteredTickets = allTickets.filter((t) => {
+    const matchesSearch =
+      !searchQuery ||
+      t.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(t.ticket_number).includes(searchQuery);
+    const matchesStatus = statusFilter === "all" || t.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || t.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
+  }).slice(0, 10);
 
   const visibleLinks = quickLinks.filter((card) => hasAccess(card.path));
 
@@ -145,17 +206,56 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Recent Tickets */}
+      {/* Recent Tickets with Search & Filters */}
       <Card className="border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Tickets Recentes</CardTitle>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="text-base font-semibold">Tickets Recentes</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar tickets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 w-48 pl-8 text-xs bg-secondary/60"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 w-[130px] text-xs">
+                  <Filter className="mr-1 h-3 w-3" />
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="open">Aberto</SelectItem>
+                  <SelectItem value="in_progress">Em Progresso</SelectItem>
+                  <SelectItem value="resolved">Resolvido</SelectItem>
+                  <SelectItem value="closed">Fechado</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="h-8 w-[130px] text-xs">
+                  <AlertTriangle className="mr-1 h-3 w-3" />
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          {recentTickets.length === 0 ? (
+          {filteredTickets.length === 0 ? (
             <p className="px-6 py-8 text-center text-sm text-muted-foreground">Nenhum ticket encontrado</p>
           ) : (
             <div className="divide-y divide-border">
-              {recentTickets.map((t) => (
+              {filteredTickets.map((t) => (
                 <div key={t.id} className="flex items-center justify-between px-6 py-3 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-mono text-muted-foreground">#{t.ticket_number}</span>
