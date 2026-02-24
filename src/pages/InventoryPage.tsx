@@ -2,8 +2,9 @@ import { useState } from "react";
 import { inventoryItems as initialItems, departments, stockRequests as initialRequests, type InventoryItem, type StockRequest } from "@/data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2 } from "lucide-react";
+import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download } from "lucide-react";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
 import WarehouseManager from "@/components/inventory/WarehouseManager";
@@ -13,6 +14,8 @@ import ExcelImportExport from "@/components/inventory/ExcelImportExport";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+
+import * as XLSX from "xlsx";
 
 const InventoryPage = () => {
   const [products, setProducts] = useState<InventoryItem[]>(initialItems);
@@ -36,6 +39,17 @@ const InventoryPage = () => {
   const handleAddRequest = (req: StockRequest) => setRequests(prev => [...prev, req]);
   const handleStatusChange = (id: string, status: StockRequest["status"]) => {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
+
+  const downloadTemplate = () => {
+    const templateData = [
+      { "Código": "INV-XXX", "Nome": "Nome do Produto", "Categoria": "Categoria", "Localização": "Local", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un" },
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "template_inventario.xlsx");
+    toast.success("Template Excel descarregado.");
   };
 
   return (
@@ -78,11 +92,35 @@ const InventoryPage = () => {
                   { key: "location", label: "Localização" },
                   { key: "totalQty", label: "Qtd. Total" },
                   { key: "availableQty", label: "Qtd. Disponível" },
+                  { key: "minStock", label: "Stock Mín." },
+                  { key: "maxStock", label: "Stock Máx." },
+                  { key: "unit", label: "Unidade" },
                   { key: "status", label: "Estado" },
                 ]}
                 moduleName="Inventário"
-                onImport={handleImportProducts as any}
+                onImport={(rows) => {
+                  const items: InventoryItem[] = rows.map((row, idx) => ({
+                    id: `imp_${Date.now()}_${idx}`,
+                    code: String(row.code || row["Código"] || ""),
+                    name: String(row.name || row["Nome"] || ""),
+                    category: String(row.category || row["Categoria"] || ""),
+                    location: String(row.location || row["Localização"] || ""),
+                    warehouseId: "",
+                    locationId: "",
+                    departmentId: "",
+                    totalQty: Number(row.totalQty || row["Qtd. Total"]) || 0,
+                    availableQty: Number(row.availableQty || row["Qtd. Disponível"]) || 0,
+                    minStock: Number(row.minStock || row["Stock Mín."]) || 0,
+                    maxStock: Number(row.maxStock || row["Stock Máx."]) || 0,
+                    unit: String(row.unit || row["Unidade"] || "un"),
+                    status: "ativo" as const,
+                  }));
+                  handleImportProducts(items);
+                }}
               />
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadTemplate}>
+                <Download className="h-4 w-4" /> Template
+              </Button>
               <ProductFormDialog onAdd={handleAddProduct} />
             </div>
           </div>

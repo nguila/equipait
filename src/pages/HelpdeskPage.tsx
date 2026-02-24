@@ -29,6 +29,8 @@ interface Ticket {
   tags: string[];
   created_at: string;
   updated_at: string;
+  equipment_type: string | null;
+  operating_system: string | null;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -66,6 +68,8 @@ const exportColumns = [
   { key: "status", label: "Estado" },
   { key: "priority", label: "Prioridade" },
   { key: "category", label: "Categoria" },
+  { key: "equipment_type", label: "Equipamento" },
+  { key: "operating_system", label: "Sistema Operativo" },
   { key: "created_at", label: "Data Criação" },
 ];
 
@@ -157,6 +161,14 @@ const HelpdeskPage = () => {
     else { toast.success("Técnico associado ao departamento"); setTechDialogOpen(false); setTechForm({ user_id: "", department_id: "" }); fetchData(); }
   };
 
+  // Remove technician from department
+  const handleRemoveTech = async (userId: string) => {
+    if (!confirm("Remover técnico do departamento?")) return;
+    const { error } = await supabase.from("profiles").update({ department_id: null }).eq("user_id", userId);
+    if (error) toast.error(error.message);
+    else { toast.success("Técnico removido do departamento"); fetchData(); }
+  };
+
   const renderTickets = (list: Ticket[]) =>
     list.length === 0 ? (
       <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum ticket encontrado</CardContent></Card>
@@ -175,6 +187,8 @@ const HelpdeskPage = () => {
                   <Badge className={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
                   <Badge variant="secondary">{statusLabels[ticket.status] || ticket.status}</Badge>
                   {ticket.category && <Badge variant="outline">{ticket.category}</Badge>}
+                  {ticket.equipment_type && <Badge variant="outline" className="gap-1">🖥️ {ticket.equipment_type}</Badge>}
+                  {ticket.operating_system && <Badge variant="outline" className="gap-1">💻 {ticket.operating_system}</Badge>}
                 </div>
                 {ticket.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{ticket.description}</p>}
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -265,10 +279,12 @@ const HelpdeskPage = () => {
         <TabsContent value="tecnicos" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Gestão de Técnicos</h2>
-            <Button size="sm" className="gap-1" onClick={() => setTechDialogOpen(true)}>
-              <UserPlus className="h-4 w-4" />
-              Associar Técnico
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" className="gap-1" onClick={() => setTechDialogOpen(true)}>
+                <UserPlus className="h-4 w-4" />
+                Associar Técnico
+              </Button>
+            </div>
           </div>
           <Card>
             <CardContent className="p-0">
@@ -278,12 +294,13 @@ const HelpdeskPage = () => {
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Departamento</TableHead>
-                    <TableHead className="text-right">Tickets Atribuídos</TableHead>
+                    <TableHead className="text-right">Tickets</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {technicians.length === 0 ? (
-                    <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum técnico encontrado</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum técnico encontrado</TableCell></TableRow>
                   ) : (
                     technicians.map((tech) => {
                       const dept = departments.find((d) => d.id === tech.department_id);
@@ -294,6 +311,11 @@ const HelpdeskPage = () => {
                           <TableCell className="text-muted-foreground">{tech.email}</TableCell>
                           <TableCell>{dept ? <Badge variant="outline">{dept.name}</Badge> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                           <TableCell className="text-right">{assignedCount}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveTech(tech.user_id); }}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       );
                     })
