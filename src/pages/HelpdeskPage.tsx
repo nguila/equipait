@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, CheckCircle, AlertCircle, Clock, MessageSquare, Users, Building2, Trash2, Edit, UserPlus, BarChart3 } from "lucide-react";
+import { Plus, Search, CheckCircle, AlertCircle, Clock, MessageSquare, Users, Building2, Trash2, Edit, UserPlus, BarChart3, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import TicketFormDialog from "@/components/helpdesk/TicketFormDialog";
+import TicketDetailDialog from "@/components/helpdesk/TicketDetailDialog";
 import ReportsTab from "@/components/helpdesk/ReportsTab";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import TechnicianProfileDialog from "@/components/helpdesk/TechnicianProfileDialog";
@@ -87,6 +88,7 @@ const HelpdeskPage = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [detailTicket, setDetailTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [mainTab, setMainTab] = useState("tickets");
 
@@ -187,7 +189,7 @@ const HelpdeskPage = () => {
       <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum ticket encontrado</CardContent></Card>
     ) : (
       list.map((ticket) => (
-        <Card key={ticket.id} className="hover:bg-accent/50 transition-colors">
+        <Card key={ticket.id} className="hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => setDetailTicket(ticket)}>
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
@@ -215,9 +217,11 @@ const HelpdeskPage = () => {
                   )}
                 </div>
               </div>
-              <Button size="icon" variant="ghost" onClick={() => { setEditingTicket(ticket); setFormOpen(true); }}>
-                <Edit className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1 shrink-0">
+                <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setEditingTicket(ticket); setFormOpen(true); }}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -344,9 +348,14 @@ const HelpdeskPage = () => {
                           <TableCell>{dept ? <Badge variant="outline">{dept.name}</Badge> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                           <TableCell className="text-right">{assignedCount}</TableCell>
                           <TableCell className="text-right">
-                            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveTech(tech.user_id); }}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex justify-end gap-1">
+                              <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setTechForm({ user_id: tech.user_id, department_id: tech.department_id || "" }); setTechDialogOpen(true); }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleRemoveTech(tech.user_id); }}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -479,6 +488,13 @@ const HelpdeskPage = () => {
         profiles={profiles}
         tickets={tickets.map((t) => ({ id: t.id, ticket_number: t.ticket_number, title: t.title }))}
         editingTicket={editingTicket}
+      />
+
+      <TicketDetailDialog
+        open={!!detailTicket}
+        onOpenChange={(open) => !open && setDetailTicket(null)}
+        ticket={detailTicket}
+        profiles={profiles}
       />
     </div>
   );
