@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Paperclip, X, Upload } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface TicketFormDialogProps {
   open: boolean;
@@ -23,6 +24,14 @@ interface TicketFormDialogProps {
 const CATEGORIES = [
   "Hardware", "Software", "Rede", "Email", "Impressoras",
   "Acessos", "Telefonia", "Outro",
+];
+
+const EQUIPMENT_TYPES = [
+  "Servidor", "Portátil", "Desktop", "Impressora", "Quadro Interativo", "Smart TV", "Outro",
+];
+
+const OS_OPTIONS = [
+  "Windows", "Linux", "macOS", "Outro",
 ];
 
 const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles, tickets }: TicketFormDialogProps) => {
@@ -39,9 +48,12 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     department_id: "",
     assigned_to: "",
     due_date: "",
+    due_time: "",
     sla_hours: "",
     tags: [] as string[],
     related_ticket_id: "",
+    equipment_type: "",
+    operating_system: "",
   });
 
   const handleAddTag = () => {
@@ -68,6 +80,17 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     setSubmitting(true);
 
     try {
+      // Build tags with equipment and OS info
+      const extraTags: string[] = [...form.tags];
+      if (form.equipment_type) extraTags.push(`equip:${form.equipment_type}`);
+      if (form.operating_system) extraTags.push(`os:${form.operating_system}`);
+
+      // Combine date and time for due_date
+      let dueDate: string | null = null;
+      if (form.due_date) {
+        dueDate = form.due_time ? `${form.due_date}T${form.due_time}` : form.due_date;
+      }
+
       const { data: ticket, error } = await supabase
         .from("tickets")
         .insert({
@@ -78,9 +101,9 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
           department_id: form.department_id || null,
           created_by: user.id,
           assigned_to: form.assigned_to || null,
-          due_date: form.due_date || null,
+          due_date: dueDate,
           sla_hours: form.sla_hours ? parseInt(form.sla_hours) : null,
-          tags: form.tags,
+          tags: extraTags,
           related_ticket_id: form.related_ticket_id || null,
         })
         .select("id")
@@ -88,7 +111,6 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
 
       if (error) throw error;
 
-      // Upload attachments
       for (const file of files) {
         const filePath = `${user.id}/${ticket.id}/${file.name}`;
         const { error: uploadError } = await supabase.storage
@@ -112,7 +134,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
       }
 
       toast.success("Ticket criado com sucesso");
-      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", sla_hours: "", tags: [], related_ticket_id: "" });
+      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "" });
       setFiles([]);
       onCreated();
       onOpenChange(false);
@@ -164,6 +186,32 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
               </Select>
             </div>
 
+            {/* Equipment & OS Section */}
+            <Separator className="md:col-span-2" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider md:col-span-2">Equipamento</p>
+
+            <div className="space-y-1.5">
+              <Label>Tipo de Equipamento</Label>
+              <Select value={form.equipment_type} onValueChange={(v) => setForm({ ...form, equipment_type: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar equipamento" /></SelectTrigger>
+                <SelectContent>
+                  {EQUIPMENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Sistema Operativo</Label>
+              <Select value={form.operating_system} onValueChange={(v) => setForm({ ...form, operating_system: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar SO" /></SelectTrigger>
+                <SelectContent>
+                  {OS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator className="md:col-span-2" />
+
             <div className="space-y-1.5">
               <Label>Departamento</Label>
               <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
@@ -187,6 +235,11 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
             <div className="space-y-1.5">
               <Label>Data Limite</Label>
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Hora Limite</Label>
+              <Input type="time" value={form.due_time} onChange={(e) => setForm({ ...form, due_time: e.target.value })} />
             </div>
 
             <div className="space-y-1.5">
