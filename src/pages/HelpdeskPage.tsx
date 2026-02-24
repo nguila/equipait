@@ -78,6 +78,8 @@ const HelpdeskPage = () => {
   const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
   const [profiles, setProfiles] = useState<{ user_id: string; full_name: string | null; email: string | null; department_id: string | null }[]>([]);
   const [search, setSearch] = useState("");
+  const [filterEquipment, setFilterEquipment] = useState("all");
+  const [filterOS, setFilterOS] = useState("all");
 
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -108,9 +110,15 @@ const HelpdeskPage = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  const filtered = tickets.filter((t) =>
-    !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.ticket_number.toString().includes(search)
-  );
+  const uniqueEquipments = useMemo(() => [...new Set(tickets.map(t => t.equipment_type).filter(Boolean))], [tickets]);
+  const uniqueOS = useMemo(() => [...new Set(tickets.map(t => t.operating_system).filter(Boolean))], [tickets]);
+
+  const filtered = tickets.filter((t) => {
+    const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.ticket_number.toString().includes(search);
+    const matchEquip = filterEquipment === "all" || t.equipment_type === filterEquipment;
+    const matchOS = filterOS === "all" || t.operating_system === filterOS;
+    return matchSearch && matchEquip && matchOS;
+  });
 
   const stats = {
     open: tickets.filter((t) => t.status === "open").length,
@@ -256,9 +264,25 @@ const HelpdeskPage = () => {
             ))}
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Pesquisar tickets..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Pesquisar tickets..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <Select value={filterEquipment} onValueChange={setFilterEquipment}>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Equipamento" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos Equipamentos</SelectItem>
+                {uniqueEquipments.map((eq) => <SelectItem key={eq} value={eq!}>{eq}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterOS} onValueChange={setFilterOS}>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Sist. Operativo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos SO</SelectItem>
+                {uniqueOS.map((os) => <SelectItem key={os} value={os!}>{os}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <Tabs defaultValue="all" className="w-full">
