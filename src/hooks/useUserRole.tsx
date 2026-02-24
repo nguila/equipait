@@ -9,10 +9,8 @@ export const ALL_MODULES = [
   "/servicos",
   "/projectos",
   "/inventario",
-  "/economato",
   "/helpdesk",
   "/documentos",
-  "/utilizadores",
   "/administracao",
 ] as const;
 
@@ -21,7 +19,7 @@ export type ModulePath = (typeof ALL_MODULES)[number];
 // Default module access by role (used as fallback when no granular permissions exist)
 const MODULE_ACCESS: Record<AppRole, string[]> = {
   admin: [...ALL_MODULES],
-  manager: ["/dashboard", "/servicos", "/projectos", "/inventario", "/economato", "/helpdesk", "/documentos"],
+  manager: ["/dashboard", "/servicos", "/projectos", "/inventario", "/helpdesk", "/documentos"],
   collaborator: ["/dashboard", "/inventario", "/helpdesk", "/documentos"],
 };
 

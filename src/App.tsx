@@ -17,7 +17,7 @@ import InventoryPage from "@/pages/InventoryPage";
 
 import HelpdeskPage from "@/pages/HelpdeskPage";
 import DocumentsPage from "@/pages/DocumentsPage";
-import UsersPage from "@/pages/UsersPage";
+
 import AdminPage from "@/pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
@@ -49,7 +49,6 @@ const App = () => (
               
               <Route path="/helpdesk" element={<ProtectedRoute requiredAccess="/helpdesk"><HelpdeskPage /></ProtectedRoute>} />
               <Route path="/documentos" element={<ProtectedRoute requiredAccess="/documentos"><DocumentsPage /></ProtectedRoute>} />
-              <Route path="/utilizadores" element={<ProtectedRoute requiredAccess="/utilizadores"><UsersPage /></ProtectedRoute>} />
               <Route path="/administracao" element={<ProtectedRoute requiredAccess="/administracao"><AdminPage /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />

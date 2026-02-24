@@ -300,7 +300,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
               <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecionar técnico" /></SelectTrigger>
                 <SelectContent>
-                  {profiles.map((p) => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || "Sem nome"}</SelectItem>)}
+                  {profiles.filter(p => p.full_name).map((p) => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || "Sem nome"}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
