@@ -4,7 +4,7 @@ import {
   Wrench,
   FolderKanban,
   Package,
-  ShoppingCart,
+  
   Headphones,
   FileText,
   Shield,
@@ -21,7 +21,6 @@ const navItems = [
   { icon: Wrench, label: "Serviços", path: "/servicos" },
   { icon: FolderKanban, label: "Projectos", path: "/projectos" },
   { icon: Package, label: "Inventário", path: "/inventario" },
-  { icon: ShoppingCart, label: "Economato", path: "/economato" },
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
   { icon: Shield, label: "Utilizadores", path: "/utilizadores" },
