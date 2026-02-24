@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, Users, Building2, Plus, Trash2, Pencil, KeyRound, Loader2, Shield } from "lucide-react";
+import { Settings, Users, Building2, Plus, Trash2, Pencil, KeyRound, Loader2, Shield, Globe, Bell, Clock, Database, Palette, Lock, Mail, Server } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -448,13 +448,284 @@ const AdminPage = () => {
         </TabsContent>
 
         {/* Sistema Tab */}
-        <TabsContent value="sistema" className="mt-6">
-          <div className="rounded-xl border border-border bg-card p-8 text-center">
-            <Settings className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold text-card-foreground">Configurações do Sistema</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Parâmetros gerais, preferências e definições avançadas.
-            </p>
+        <TabsContent value="sistema" className="mt-6 space-y-6">
+          {/* Informações Gerais */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Globe className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Informações Gerais</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Nome da Organização</Label>
+                  <Input defaultValue="TI Data CoLAB" placeholder="Nome da empresa" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Fuso Horário</Label>
+                  <Select defaultValue="europe-lisbon">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="europe-lisbon">Europe/Lisbon (WET)</SelectItem>
+                      <SelectItem value="europe-london">Europe/London (GMT)</SelectItem>
+                      <SelectItem value="europe-madrid">Europe/Madrid (CET)</SelectItem>
+                      <SelectItem value="europe-paris">Europe/Paris (CET)</SelectItem>
+                      <SelectItem value="america-saopaulo">America/São Paulo (BRT)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Idioma Padrão</Label>
+                  <Select defaultValue="pt">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt">Português</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Formato de Data</Label>
+                  <Select defaultValue="dd-mm-yyyy">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dd-mm-yyyy">DD/MM/AAAA</SelectItem>
+                      <SelectItem value="mm-dd-yyyy">MM/DD/AAAA</SelectItem>
+                      <SelectItem value="yyyy-mm-dd">AAAA-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Notificações */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Bell className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Notificações</h3>
+            </div>
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Notificações por Email</p>
+                    <p className="text-xs text-muted-foreground">Enviar alertas de tickets e tarefas por email</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Notificações em Tempo Real</p>
+                    <p className="text-xs text-muted-foreground">Alertas instantâneos dentro da aplicação</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Resumo Diário</p>
+                    <p className="text-xs text-muted-foreground">Receber resumo diário de atividades pendentes</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Notificações de SLA</p>
+                    <p className="text-xs text-muted-foreground">Alertar quando tickets estão próximos de violar o SLA</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Segurança */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Lock className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Segurança</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Expiração da Sessão (minutos)</Label>
+                  <Select defaultValue="60">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutos</SelectItem>
+                      <SelectItem value="30">30 minutos</SelectItem>
+                      <SelectItem value="60">1 hora</SelectItem>
+                      <SelectItem value="480">8 horas</SelectItem>
+                      <SelectItem value="1440">24 horas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>Comprimento Mínimo de Password</Label>
+                  <Select defaultValue="8">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">6 caracteres</SelectItem>
+                      <SelectItem value="8">8 caracteres</SelectItem>
+                      <SelectItem value="10">10 caracteres</SelectItem>
+                      <SelectItem value="12">12 caracteres</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Forçar Alteração de Password</p>
+                    <p className="text-xs text-muted-foreground">Exigir alteração na primeira sessão de novos utilizadores</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Autenticação de Dois Fatores (2FA)</p>
+                    <p className="text-xs text-muted-foreground">Requer segundo fator de autenticação para todos os utilizadores</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Registo de Atividade</p>
+                    <p className="text-xs text-muted-foreground">Registar todas as ações dos utilizadores para auditoria</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Helpdesk / SLA */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Helpdesk & SLA</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>SLA Padrão — Prioridade Crítica (horas)</Label>
+                  <Input type="number" defaultValue="4" min={1} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>SLA Padrão — Prioridade Alta (horas)</Label>
+                  <Input type="number" defaultValue="8" min={1} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>SLA Padrão — Prioridade Média (horas)</Label>
+                  <Input type="number" defaultValue="24" min={1} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-5 space-y-3">
+                  <Label>SLA Padrão — Prioridade Baixa (horas)</Label>
+                  <Input type="number" defaultValue="72" min={1} />
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Atribuição Automática</p>
+                    <p className="text-xs text-muted-foreground">Atribuir tickets automaticamente ao técnico com menor carga</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Escalonamento Automático</p>
+                    <p className="text-xs text-muted-foreground">Escalonar tickets para gestores quando o SLA está em risco</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Aparência */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Palette className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Aparência</h3>
+            </div>
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Tema Escuro</p>
+                    <p className="text-xs text-muted-foreground">Permitir aos utilizadores alternar para tema escuro</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Sidebar Compacta</p>
+                    <p className="text-xs text-muted-foreground">Usar versão compacta do menu lateral por padrão</p>
+                  </div>
+                  <Switch />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Dados & Backup */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Database className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-card-foreground uppercase tracking-wider">Dados & Manutenção</h3>
+            </div>
+            <Card>
+              <CardContent className="pt-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Backup Automático</p>
+                    <p className="text-xs text-muted-foreground">Realizar backups automáticos diários da base de dados</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="space-y-2">
+                  <Label>Retenção de Logs (dias)</Label>
+                  <Select defaultValue="90">
+                    <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 dias</SelectItem>
+                      <SelectItem value="60">60 dias</SelectItem>
+                      <SelectItem value="90">90 dias</SelectItem>
+                      <SelectItem value="180">180 dias</SelectItem>
+                      <SelectItem value="365">1 ano</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Botão Guardar */}
+          <div className="flex justify-end pt-2 pb-4">
+            <Button className="gap-2" onClick={() => toast.success("Configurações guardadas com sucesso")}>
+              <Settings className="h-4 w-4" />
+              Guardar Configurações
+            </Button>
           </div>
         </TabsContent>
       </Tabs>
