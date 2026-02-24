@@ -26,11 +26,15 @@ interface Ticket {
   priority: string;
   category: string | null;
   assigned_to: string | null;
+  department_id: string | null;
   tags: string[];
   created_at: string;
   updated_at: string;
   equipment_type: string | null;
   operating_system: string | null;
+  due_date: string | null;
+  sla_hours: number | null;
+  related_ticket_id: string | null;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -82,6 +86,7 @@ const HelpdeskPage = () => {
   const [filterOS, setFilterOS] = useState("all");
 
   const [formOpen, setFormOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [mainTab, setMainTab] = useState("tickets");
 
@@ -182,7 +187,7 @@ const HelpdeskPage = () => {
       <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhum ticket encontrado</CardContent></Card>
     ) : (
       list.map((ticket) => (
-        <Card key={ticket.id} className="hover:bg-accent/50 cursor-pointer transition-colors">
+        <Card key={ticket.id} className="hover:bg-accent/50 transition-colors">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
@@ -210,6 +215,9 @@ const HelpdeskPage = () => {
                   )}
                 </div>
               </div>
+              <Button size="icon" variant="ghost" onClick={() => { setEditingTicket(ticket); setFormOpen(true); }}>
+                <Edit className="h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -465,11 +473,12 @@ const HelpdeskPage = () => {
 
       <TicketFormDialog
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => { setFormOpen(open); if (!open) setEditingTicket(null); }}
         onCreated={fetchData}
         departments={departments}
         profiles={profiles}
         tickets={tickets.map((t) => ({ id: t.id, ticket_number: t.ticket_number, title: t.title }))}
+        editingTicket={editingTicket}
       />
     </div>
   );
