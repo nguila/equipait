@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import TicketFormDialog from "@/components/helpdesk/TicketFormDialog";
+import ReportsTab from "@/components/helpdesk/ReportsTab";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+
 
 interface Ticket {
   id: string;
@@ -72,6 +73,7 @@ const HelpdeskPage = () => {
   const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
   const [profiles, setProfiles] = useState<{ user_id: string; full_name: string | null; email: string | null; department_id: string | null }[]>([]);
   const [search, setSearch] = useState("");
+
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mainTab, setMainTab] = useState("tickets");
@@ -400,170 +402,7 @@ const HelpdeskPage = () => {
 
         {/* ---- RELATÓRIOS TAB ---- */}
         <TabsContent value="relatorios" className="space-y-6">
-          <h2 className="text-lg font-semibold text-foreground">Relatórios & Estatísticas</h2>
-
-          {(() => {
-            const COLORS = ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(210, 70%, 50%)", "hsl(140, 60%, 40%)", "hsl(40, 80%, 50%)", "hsl(280, 60%, 50%)"];
-
-            // Tickets by status
-            const statusData = Object.entries(statusLabels).map(([key, label]) => ({
-              name: label,
-              value: tickets.filter((t) => t.status === key).length,
-            })).filter((d) => d.value > 0);
-
-            // Tickets by priority
-            const priorityData = [
-              { name: "Crítica", value: tickets.filter((t) => t.priority === "critical").length },
-              { name: "Alta", value: tickets.filter((t) => t.priority === "high").length },
-              { name: "Média", value: tickets.filter((t) => t.priority === "medium").length },
-              { name: "Baixa", value: tickets.filter((t) => t.priority === "low").length },
-            ].filter((d) => d.value > 0);
-
-            // Tickets by technician
-            const techData = profiles
-              .map((p) => ({
-                name: p.full_name || p.email || "Sem nome",
-                total: tickets.filter((t) => t.assigned_to === p.user_id).length,
-                resolvidos: tickets.filter((t) => t.assigned_to === p.user_id && (t.status === "resolved" || t.status === "closed")).length,
-              }))
-              .filter((d) => d.total > 0)
-              .sort((a, b) => b.total - a.total);
-
-            // Tickets by department
-            const deptData = departments.map((d) => {
-              const deptProfiles = profiles.filter((p) => p.department_id === d.id);
-              const deptUserIds = deptProfiles.map((p) => p.user_id);
-              return {
-                name: d.name,
-                total: tickets.filter((t) => t.assigned_to && deptUserIds.includes(t.assigned_to)).length,
-                resolvidos: tickets.filter((t) => t.assigned_to && deptUserIds.includes(t.assigned_to) && (t.status === "resolved" || t.status === "closed")).length,
-              };
-            }).filter((d) => d.total > 0);
-
-            // Monthly trend
-            const monthlyData = (() => {
-              const months: Record<string, { name: string; criados: number; resolvidos: number }> = {};
-              tickets.forEach((t) => {
-                const d = new Date(t.created_at);
-                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                const label = d.toLocaleDateString("pt-PT", { month: "short", year: "2-digit" });
-                if (!months[key]) months[key] = { name: label, criados: 0, resolvidos: 0 };
-                months[key].criados++;
-              });
-              tickets.filter((t) => t.status === "resolved" || t.status === "closed").forEach((t) => {
-                const d = new Date(t.updated_at);
-                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                const label = d.toLocaleDateString("pt-PT", { month: "short", year: "2-digit" });
-                if (!months[key]) months[key] = { name: label, criados: 0, resolvidos: 0 };
-                months[key].resolvidos++;
-              });
-              return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
-            })();
-
-            if (tickets.length === 0) {
-              return (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">Sem dados para apresentar. Crie tickets para ver os relatórios.</CardContent></Card>
-              );
-            }
-
-            return (
-              <>
-                {/* Row 1: Pie charts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Distribuição por Estado</h3>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`}>
-                            {statusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Distribuição por Prioridade</h3>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie data={priorityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`}>
-                            {priorityData.map((_, i) => <Cell key={i} fill={["hsl(var(--destructive))", "hsl(25, 90%, 50%)", "hsl(45, 90%, 50%)", "hsl(140, 60%, 40%)"][i]} />)}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Row 2: Bar charts - by technician and department */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Tickets por Técnico</h3>
-                      {techData.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-8">Nenhum ticket atribuído a técnicos</p>
-                      ) : (
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={techData} layout="vertical" margin={{ left: 80 }}>
-                            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                            <XAxis type="number" />
-                            <YAxis type="category" dataKey="name" width={75} tick={{ fontSize: 12 }} />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="total" name="Total" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                            <Bar dataKey="resolvidos" name="Resolvidos" fill="hsl(140, 60%, 40%)" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Tickets por Departamento</h3>
-                      {deptData.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-8">Nenhum ticket associado a departamentos</p>
-                      ) : (
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={deptData} margin={{ left: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="total" name="Total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="resolvidos" name="Resolvidos" fill="hsl(140, 60%, 40%)" radius={[4, 4, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Row 3: Monthly trend */}
-                {monthlyData.length > 0 && (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Tendência Mensal</h3>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={monthlyData}>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="criados" name="Criados" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                          <Bar dataKey="resolvidos" name="Resolvidos" fill="hsl(140, 60%, 40%)" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            );
-          })()}
+          <ReportsTab tickets={tickets} profiles={profiles} departments={departments} />
         </TabsContent>
       </Tabs>
 
