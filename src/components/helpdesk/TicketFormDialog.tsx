@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,23 @@ import { toast } from "sonner";
 import { Paperclip, X, Upload } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
+interface EditingTicket {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  category: string | null;
+  department_id?: string | null;
+  assigned_to: string | null;
+  due_date: string | null;
+  sla_hours: number | null;
+  tags: string[];
+  related_ticket_id: string | null;
+  equipment_type: string | null;
+  operating_system: string | null;
+  status: string;
+}
+
 interface TicketFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,6 +36,7 @@ interface TicketFormDialogProps {
   departments: { id: string; name: string }[];
   profiles: { user_id: string; full_name: string | null }[];
   tickets: { id: string; ticket_number: number; title: string }[];
+  editingTicket?: EditingTicket | null;
 }
 
 const CATEGORIES = [
@@ -34,7 +52,7 @@ const OS_OPTIONS = [
   "Windows", "Linux", "macOS", "Outro",
 ];
 
-const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles, tickets }: TicketFormDialogProps) => {
+const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles, tickets, editingTicket }: TicketFormDialogProps) => {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,7 +72,34 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     related_ticket_id: "",
     equipment_type: "",
     operating_system: "",
+    status: "open",
   });
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (editingTicket && open) {
+      const dueDate = editingTicket.due_date ? editingTicket.due_date.split("T")[0] : "";
+      const dueTime = editingTicket.due_date && editingTicket.due_date.includes("T") ? editingTicket.due_date.split("T")[1]?.substring(0, 5) : "";
+      setForm({
+        title: editingTicket.title,
+        description: editingTicket.description || "",
+        priority: editingTicket.priority,
+        category: editingTicket.category || "",
+        department_id: editingTicket.department_id || "",
+        assigned_to: editingTicket.assigned_to || "",
+        due_date: dueDate,
+        due_time: dueTime,
+        sla_hours: editingTicket.sla_hours?.toString() || "",
+        tags: editingTicket.tags || [],
+        related_ticket_id: editingTicket.related_ticket_id || "",
+        equipment_type: editingTicket.equipment_type || "",
+        operating_system: editingTicket.operating_system || "",
+        status: editingTicket.status,
+      });
+    } else if (!editingTicket && open) {
+      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "open" });
+    }
+  }, [editingTicket, open]);
 
   const handleAddTag = () => {
     const tag = tagInput.trim();
@@ -88,57 +133,70 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
         dueDate = form.due_time ? `${form.due_date}T${form.due_time}` : form.due_date;
       }
 
-      const { data: ticket, error } = await supabase
-        .from("tickets")
-        .insert({
-          title: form.title,
-          description: form.description || null,
-          priority: form.priority,
-          category: form.category || null,
-          department_id: form.department_id || null,
-          created_by: user.id,
-          assigned_to: form.assigned_to || null,
-          due_date: dueDate,
-          sla_hours: form.sla_hours ? parseInt(form.sla_hours) : null,
-          tags: extraTags,
-          related_ticket_id: form.related_ticket_id || null,
-          equipment_type: form.equipment_type || null,
-          operating_system: form.operating_system || null,
-        } as any)
-        .select("id")
-        .single();
+      const ticketData = {
+        title: form.title,
+        description: form.description || null,
+        priority: form.priority,
+        category: form.category || null,
+        department_id: form.department_id || null,
+        assigned_to: form.assigned_to || null,
+        due_date: dueDate,
+        sla_hours: form.sla_hours ? parseInt(form.sla_hours) : null,
+        tags: extraTags,
+        related_ticket_id: form.related_ticket_id || null,
+        equipment_type: form.equipment_type || null,
+        operating_system: form.operating_system || null,
+      } as any;
 
-      if (error) throw error;
+      if (editingTicket) {
+        // UPDATE mode
+        ticketData.status = form.status;
+        const { error } = await supabase
+          .from("tickets")
+          .update(ticketData)
+          .eq("id", editingTicket.id);
+        if (error) throw error;
+        toast.success("Ticket atualizado com sucesso");
+      } else {
+        // INSERT mode
+        ticketData.created_by = user.id;
+        const { data: ticket, error } = await supabase
+          .from("tickets")
+          .insert(ticketData)
+          .select("id")
+          .single();
+        if (error) throw error;
 
-      for (const file of files) {
-        const filePath = `${user.id}/${ticket.id}/${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("attachments")
-          .upload(filePath, file);
+        for (const file of files) {
+          const filePath = `${user.id}/${ticket.id}/${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from("attachments")
+            .upload(filePath, file);
 
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          continue;
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            continue;
+          }
+
+          await supabase.from("attachments").insert({
+            file_name: file.name,
+            file_path: filePath,
+            file_size: file.size,
+            content_type: file.type,
+            entity_type: "ticket",
+            entity_id: ticket.id,
+            uploaded_by: user.id,
+          });
         }
-
-        await supabase.from("attachments").insert({
-          file_name: file.name,
-          file_path: filePath,
-          file_size: file.size,
-          content_type: file.type,
-          entity_type: "ticket",
-          entity_id: ticket.id,
-          uploaded_by: user.id,
-        });
+        toast.success("Ticket criado com sucesso");
       }
 
-      toast.success("Ticket criado com sucesso");
-      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "" });
+      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "open" });
       setFiles([]);
       onCreated();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error("Erro ao criar ticket: " + err.message);
+      toast.error("Erro ao guardar ticket: " + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +206,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Ticket</DialogTitle>
+          <DialogTitle>{editingTicket ? "Editar Ticket" : "Novo Ticket"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,6 +232,22 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
                 </SelectContent>
               </Select>
             </div>
+
+            {editingTicket && (
+              <div className="space-y-1.5">
+                <Label>Estado</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Aberto</SelectItem>
+                    <SelectItem value="in_progress">Em Progresso</SelectItem>
+                    <SelectItem value="waiting">Em Espera</SelectItem>
+                    <SelectItem value="resolved">Resolvido</SelectItem>
+                    <SelectItem value="closed">Fechado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label>Categoria</Label>
@@ -306,7 +380,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "A criar..." : "Criar Ticket"}
+              {submitting ? "A guardar..." : editingTicket ? "Guardar Alterações" : "Criar Ticket"}
             </Button>
           </div>
         </form>
