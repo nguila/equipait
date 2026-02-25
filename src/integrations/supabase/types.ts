@@ -246,6 +246,99 @@ export type Database = {
           },
         ]
       }
+      projects: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          priority: string
+          responsible_id: string | null
+          start_date: string | null
+          status: string
+          technician_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: string
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string
+          technician_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: string
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string
+          technician_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          priority: string
+          responsible_id: string | null
+          start_date: string | null
+          status: string
+          technician_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: string
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string
+          technician_id?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: string
+          responsible_id?: string | null
+          start_date?: string | null
+          status?: string
+          technician_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ticket_comments: {
         Row: {
           content: string
