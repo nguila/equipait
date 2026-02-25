@@ -71,7 +71,7 @@ const ResetPasswordPage = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg">
             <FolderKanban className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">ERP Data CoLAB</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Helpdesk Data CoLAB</h1>
           <p className="text-sm text-muted-foreground">
             Redefinir password
           </p>
