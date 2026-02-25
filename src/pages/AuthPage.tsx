@@ -79,7 +79,7 @@ const AuthPage = () => {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg">
               <FolderKanban className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">ERP Data CoLAB</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Helpdesk Data CoLAB</h1>
             <p className="text-sm text-muted-foreground">
               Recuperar password
             </p>
@@ -151,9 +151,9 @@ const AuthPage = () => {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg">
             <FolderKanban className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">ERP Data CoLAB</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Helpdesk Data CoLAB</h1>
           <p className="text-sm text-muted-foreground">
-            Plataforma integrada de gestão ERP
+            Plataforma integrada de gestão
           </p>
         </div>
 
@@ -164,7 +164,7 @@ const AuthPage = () => {
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? "Introduza as suas credenciais para aceder ao ERP"
+                ? "Introduza as suas credenciais para aceder à plataforma"
                 : "Preencha os dados para criar a sua conta"}
             </CardDescription>
           </CardHeader>
