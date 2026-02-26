@@ -1,34 +1,100 @@
-import { useState } from "react";
-import { inventoryItems as initialItems, departments, stockRequests as initialRequests, type InventoryItem, type StockRequest } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { inventoryItems as initialItems, departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download } from "lucide-react";
+import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, TrendingDown, CheckCircle } from "lucide-react";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
-import WarehouseManager from "@/components/inventory/WarehouseManager";
 import OrdersTable from "@/components/inventory/OrdersTable";
-import StockStatusCards from "@/components/inventory/StockStatusCards";
-import ExcelImportExport from "@/components/inventory/ExcelImportExport";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
 import * as XLSX from "xlsx";
+
+interface InventoryCategory {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
 const InventoryPage = () => {
   const [products, setProducts] = useState<InventoryItem[]>(initialItems);
   const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const categories = [...new Set(products.map((i) => i.category))];
-  const filtered = products.filter((i) => catFilter === "all" || i.category === catFilter);
+  // Categories & Departments from DB
+  const [categories, setCategories] = useState<InventoryCategory[]>([]);
+  const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>(initialWarehouses);
+  const [locations, setLocations] = useState<WarehouseLocation[]>(initialLocations);
+
+  // Category form
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
+  const [catForm, setCatForm] = useState({ name: "", description: "" });
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+
+  // Department form
+  const [deptDialogOpen, setDeptDialogOpen] = useState(false);
+  const [deptForm, setDeptForm] = useState({ name: "", description: "" });
+  const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
+
+  // Warehouse form
+  const [whDialogOpen, setWhDialogOpen] = useState(false);
+  const [whForm, setWhForm] = useState({ name: "", code: "", address: "" });
+
+  // Location form
+  const [locDialogOpen, setLocDialogOpen] = useState(false);
+  const [locForm, setLocForm] = useState({ warehouseId: "", name: "", zone: "", capacity: "" });
+
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const [catsRes, deptsRes] = await Promise.all([
+      supabase.from("inventory_categories").select("*").order("name"),
+      supabase.from("departments").select("id, name, description").order("name"),
+    ]);
+    if (catsRes.data) setCategories(catsRes.data as InventoryCategory[]);
+    if (deptsRes.data) setDepartments(deptsRes.data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const categoryNames = categories.map(c => c.name);
+  const filtered = products.filter((i) => {
+    const matchCat = catFilter === "all" || i.category === catFilter;
+    const matchSearch = !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.code.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch;
+  });
   const filteredRequests = requests.filter(r => orderFilter === "all" || r.status === orderFilter);
 
-  const handleAddProduct = (item: InventoryItem) => setProducts(prev => [...prev, item]);
+  // Auto-numbering for products
+  const getNextProductCode = () => {
+    const nums = products.map(p => {
+      const m = p.code.match(/INV-(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    const max = nums.length > 0 ? Math.max(...nums) : 0;
+    return `INV-${String(max + 1).padStart(3, "0")}`;
+  };
+
+  const handleAddProduct = (item: InventoryItem) => {
+    const autoCode = getNextProductCode();
+    setProducts(prev => [...prev, { ...item, code: autoCode }]);
+  };
   const handleEditProduct = (item: InventoryItem) => setProducts(prev => prev.map(p => p.id === item.id ? item : p));
   const handleImportProducts = (items: InventoryItem[]) => setProducts(prev => [...prev, ...items]);
   const handleDeleteProduct = (id: string) => {
@@ -39,6 +105,82 @@ const InventoryPage = () => {
   const handleAddRequest = (req: StockRequest) => setRequests(prev => [...prev, req]);
   const handleStatusChange = (id: string, status: StockRequest["status"]) => {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
+
+  // Category CRUD
+  const handleSaveCategory = async () => {
+    if (!catForm.name.trim()) return;
+    try {
+      if (editingCatId) {
+        const { error } = await supabase.from("inventory_categories").update({ name: catForm.name, description: catForm.description || null }).eq("id", editingCatId);
+        if (error) throw error;
+        toast.success("Categoria atualizada");
+      } else {
+        const { error } = await supabase.from("inventory_categories").insert({ name: catForm.name, description: catForm.description || null });
+        if (error) throw error;
+        toast.success("Categoria criada");
+      }
+      setCatDialogOpen(false);
+      setCatForm({ name: "", description: "" });
+      setEditingCatId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm("Eliminar categoria?")) return;
+    const { error } = await supabase.from("inventory_categories").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Categoria eliminada"); fetchData(); }
+  };
+
+  // Department CRUD
+  const handleSaveDept = async () => {
+    if (!deptForm.name.trim()) return;
+    try {
+      if (editingDeptId) {
+        const { error } = await supabase.from("departments").update({ name: deptForm.name, description: deptForm.description || null }).eq("id", editingDeptId);
+        if (error) throw error;
+        toast.success("Departamento atualizado");
+      } else {
+        const { error } = await supabase.from("departments").insert({ name: deptForm.name, description: deptForm.description || null });
+        if (error) throw error;
+        toast.success("Departamento criado");
+      }
+      setDeptDialogOpen(false);
+      setDeptForm({ name: "", description: "" });
+      setEditingDeptId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteDept = async (id: string) => {
+    if (!confirm("Eliminar departamento?")) return;
+    const { error } = await supabase.from("departments").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Departamento eliminado"); fetchData(); }
+  };
+
+  // Warehouse CRUD
+  const addWarehouse = () => {
+    if (!whForm.name || !whForm.code) { toast.error("Preencha nome e código."); return; }
+    setWarehouses(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
+    setWhDialogOpen(false);
+    setWhForm({ name: "", code: "", address: "" });
+    toast.success("Armazém criado.");
+  };
+
+  // Location CRUD
+  const addLocation = () => {
+    if (!locForm.warehouseId || !locForm.name) { toast.error("Preencha os campos obrigatórios."); return; }
+    setLocations(prev => [...prev, { id: `wl${Date.now()}`, warehouseId: locForm.warehouseId, name: locForm.name, zone: locForm.zone, capacity: Number(locForm.capacity) || 0, currentOccupancy: 0 }]);
+    setLocDialogOpen(false);
+    setLocForm({ warehouseId: "", name: "", zone: "", capacity: "" });
+    toast.success("Localização criada.");
   };
 
   const downloadTemplate = () => {
@@ -52,17 +194,62 @@ const InventoryPage = () => {
     toast.success("Template Excel descarregado.");
   };
 
+  // Stats
+  const totalProducts = products.length;
+  const lowStock = products.filter(p => p.availableQty <= p.minStock);
+  const healthyStock = products.filter(p => p.availableQty > p.minStock);
+  const outOfStock = products.filter(p => p.availableQty === 0);
+
+  const handleRefresh = () => {
+    fetchData();
+    toast.success("Dados atualizados");
+  };
+
   return (
-    <div className="space-y-5 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Inventário & Ativos</h1>
-        <p className="text-sm text-muted-foreground">Gestão de produtos, stock, armazéns e pedidos de material</p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            Inventário & Ativos
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestão de produtos, stock, armazéns, categorias e pedidos de material</p>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          { label: "Total Produtos", value: totalProducts, icon: Package, color: "text-primary", bg: "bg-primary/10" },
+          { label: "Stock Saudável", value: healthyStock.length, icon: CheckCircle, color: "text-success", bg: "bg-success/10" },
+          { label: "Stock Baixo", value: lowStock.length, icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10" },
+          { label: "Sem Stock", value: outOfStock.length, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
+        ].map((s) => (
+          <Card key={s.label} className="hover-lift">
+            <CardContent className="pt-5 pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                  <p className="text-2xl font-bold mt-1">{s.value}</p>
+                </div>
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.bg}`}>
+                  <s.icon className={`h-5 w-5 ${s.color}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Tabs defaultValue="products" className="space-y-4">
-        <TabsList className="bg-muted/60 p-1">
+        <TabsList className="bg-muted/60 p-1 flex-wrap">
           <TabsTrigger value="products" className="gap-1.5 text-xs"><Package className="h-4 w-4" />Produtos</TabsTrigger>
           <TabsTrigger value="stock" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" />Estado Stock</TabsTrigger>
+          <TabsTrigger value="categories" className="gap-1.5 text-xs"><FolderOpen className="h-4 w-4" />Categorias</TabsTrigger>
+          <TabsTrigger value="departments" className="gap-1.5 text-xs"><Building2 className="h-4 w-4" />Departamentos</TabsTrigger>
           <TabsTrigger value="warehouses" className="gap-1.5 text-xs"><MapPin className="h-4 w-4" />Armazéns</TabsTrigger>
           <TabsTrigger value="requests" className="gap-1.5 text-xs"><ClipboardList className="h-4 w-4" />Pedidos</TabsTrigger>
           <TabsTrigger value="orders" className="gap-1.5 text-xs"><Box className="h-4 w-4" />Gestão Pedidos</TabsTrigger>
@@ -71,14 +258,18 @@ const InventoryPage = () => {
         {/* PRODUTOS */}
         <TabsContent value="products" className="space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pesquisar produtos..." className="pl-10 w-64 h-9" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+              </div>
               <Select value={catFilter} onValueChange={setCatFilter}>
                 <SelectTrigger className="w-52 h-9 text-sm">
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as categorias</SelectItem>
-                  {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {categoryNames.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -121,11 +312,11 @@ const InventoryPage = () => {
               <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadTemplate}>
                 <Download className="h-4 w-4" /> Template
               </Button>
-              <ProductFormDialog onAdd={handleAddProduct} />
+              <ProductFormDialog onAdd={handleAddProduct} categories={categoryNames} departments={departments} />
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
@@ -141,42 +332,54 @@ const InventoryPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((item) => {
-                  const dept = departments.find((d) => d.id === item.departmentId);
-                  const lowStock = item.availableQty <= item.minStock;
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
+                ) : filtered.map((item) => {
+                  const dept = departments.find((d) => d.id === item.departmentId) || mockDepartments.find(d => d.id === item.departmentId);
+                  const lowStockItem = item.availableQty <= item.minStock;
+                  const pct = item.maxStock > 0 ? Math.round((item.availableQty / item.maxStock) * 100) : 0;
                   return (
-                    <tr key={item.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-5 py-3.5 text-sm font-mono text-muted-foreground">{item.code}</td>
+                    <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4 text-muted-foreground" />
+                        <Badge variant="outline" className="font-mono text-xs">{item.code}</Badge>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <Package className="h-4 w-4 text-primary" />
+                          </div>
                           <span className="text-sm font-medium text-card-foreground">{item.name}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{item.category}</td>
+                      <td className="px-5 py-3.5">
+                        <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+                      </td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{item.location}</td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{dept?.name}</td>
+                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{dept?.name || "—"}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-semibold ${lowStock ? "text-destructive" : "text-card-foreground"}`}>
+                          <div className="w-16">
+                            <Progress value={pct} className={`h-1.5 ${item.availableQty === 0 ? "[&>div]:bg-destructive" : lowStockItem ? "[&>div]:bg-warning" : ""}`} />
+                          </div>
+                          <span className={`text-sm font-semibold ${lowStockItem ? "text-destructive" : "text-card-foreground"}`}>
                             {item.availableQty}/{item.totalQty}
                           </span>
-                          {lowStock && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                          {lowStockItem && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                         </div>
                       </td>
-                       <td className="px-5 py-3.5">
-                         <span className="text-xs text-muted-foreground">mín: {item.minStock} / máx: {item.maxStock}</span>
-                       </td>
-                       <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
-                       <td className="px-5 py-3.5 flex items-center gap-2">
-                         <ProductFormDialog editItem={item} onEdit={handleEditProduct} />
-                         <button 
-                           onClick={() => setDeleteId(item.id)}
-                           className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                         >
-                           <Trash2 className="h-4 w-4" />
-                         </button>
-                       </td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs text-muted-foreground">mín: {item.minStock} / máx: {item.maxStock}</span>
+                      </td>
+                      <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
+                      <td className="px-5 py-3.5 flex items-center gap-1">
+                        <ProductFormDialog editItem={item} onEdit={handleEditProduct} categories={categoryNames} departments={departments} />
+                        <button
+                          onClick={() => setDeleteId(item.id)}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -187,12 +390,247 @@ const InventoryPage = () => {
 
         {/* ESTADO DO STOCK */}
         <TabsContent value="stock">
-          <StockStatusCards products={products} />
+          <div className="space-y-6">
+            <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+              <div className="px-5 py-3 border-b border-border bg-muted/50">
+                <h3 className="text-sm font-semibold text-card-foreground">Estado do Stock por Produto</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {products.map(p => {
+                  const pct = p.maxStock > 0 ? Math.round((p.availableQty / p.maxStock) * 100) : 0;
+                  const isLow = p.availableQty <= p.minStock;
+                  const isEmpty = p.availableQty === 0;
+                  return (
+                    <div key={p.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-card-foreground">{p.name}</span>
+                          {isLow && <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
+                          {isEmpty && <Badge variant="destructive" className="text-[10px]">ESGOTADO</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{p.code} · {p.category}</p>
+                      </div>
+                      <div className="w-40 flex items-center gap-2">
+                        <Progress value={pct} className={`h-2 flex-1 ${isEmpty ? "[&>div]:bg-destructive" : isLow ? "[&>div]:bg-warning" : ""}`} />
+                        <span className="text-xs font-medium text-muted-foreground w-10 text-right">{pct}%</span>
+                      </div>
+                      <div className="text-right w-24">
+                        <span className={`text-sm font-semibold ${isEmpty ? "text-destructive" : isLow ? "text-warning" : "text-card-foreground"}`}>
+                          {p.availableQty}/{p.maxStock}
+                        </span>
+                        <p className="text-xs text-muted-foreground">mín: {p.minStock}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* CATEGORIAS */}
+        <TabsContent value="categories" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Categorias de Inventário</h2>
+              <p className="text-sm text-muted-foreground">Gerir categorias para classificar os produtos do inventário</p>
+            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => { setCatForm({ name: "", description: "" }); setEditingCatId(null); setCatDialogOpen(true); }}>
+              <Plus className="h-4 w-4" /> Nova Categoria
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {categories.map((c) => (
+              <Card key={c.id} className="hover-lift">
+                <CardContent className="pt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                      <FolderOpen className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-card-foreground">{c.name}</p>
+                      {c.description && <p className="text-xs text-muted-foreground">{c.description}</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => { setCatForm({ name: c.name, description: c.description || "" }); setEditingCatId(c.id); setCatDialogOpen(true); }}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeleteCategory(c.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader><DialogTitle>{editingCatId ? "Editar Categoria" : "Nova Categoria"}</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Nome *</Label>
+                  <Input value={catForm.name} onChange={e => setCatForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome da categoria" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Descrição</Label>
+                  <Input value={catForm.description} onChange={e => setCatForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrição opcional" />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setCatDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleSaveCategory}>{editingCatId ? "Atualizar" : "Criar"}</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+
+        {/* DEPARTAMENTOS */}
+        <TabsContent value="departments" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Departamentos</h2>
+              <p className="text-sm text-muted-foreground">Gerir departamentos associados ao inventário</p>
+            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => { setDeptForm({ name: "", description: "" }); setEditingDeptId(null); setDeptDialogOpen(true); }}>
+              <Plus className="h-4 w-4" /> Novo Departamento
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {departments.map((d) => (
+              <Card key={d.id} className="hover-lift">
+                <CardContent className="pt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
+                      <Building2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-card-foreground">{d.name}</p>
+                      {d.description && <p className="text-xs text-muted-foreground">{d.description}</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => { setDeptForm({ name: d.name, description: d.description || "" }); setEditingDeptId(d.id); setDeptDialogOpen(true); }}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeleteDept(d.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader><DialogTitle>{editingDeptId ? "Editar Departamento" : "Novo Departamento"}</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Nome *</Label>
+                  <Input value={deptForm.name} onChange={e => setDeptForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome do departamento" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Descrição</Label>
+                  <Input value={deptForm.description} onChange={e => setDeptForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrição opcional" />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setDeptDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleSaveDept}>{editingDeptId ? "Atualizar" : "Criar"}</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* ARMAZÉNS & LOCALIZAÇÕES */}
-        <TabsContent value="warehouses">
-          <WarehouseManager />
+        <TabsContent value="warehouses" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Armazéns & Localizações</h2>
+              <p className="text-sm text-muted-foreground">Gerir armazéns e as suas localizações internas</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="gap-1.5" onClick={() => setWhDialogOpen(true)}>
+                <Plus className="h-4 w-4" />Novo Armazém
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setLocDialogOpen(true)}>
+                <MapPin className="h-4 w-4" />Nova Localização
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {warehouses.map(wh => {
+              const locs = locations.filter(l => l.warehouseId === wh.id);
+              return (
+                <Card key={wh.id} className="hover-lift">
+                  <CardContent className="pt-5 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <WarehouseIcon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-card-foreground">{wh.name}</h3>
+                        <p className="text-xs text-muted-foreground">{wh.code} · {wh.address}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {locs.length === 0 && <p className="text-xs text-muted-foreground italic">Sem localizações definidas</p>}
+                      {locs.map(loc => {
+                        const pct = loc.capacity > 0 ? Math.round((loc.currentOccupancy / loc.capacity) * 100) : 0;
+                        return (
+                          <div key={loc.id} className="rounded-lg bg-muted/50 p-3 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-card-foreground">{loc.name}</span>
+                              <Badge variant="outline" className="text-[10px]">{loc.zone}</Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Progress value={pct} className="h-1.5 flex-1" />
+                              <span className="text-xs text-muted-foreground">{pct}%</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{loc.currentOccupancy}/{loc.capacity} ocupados</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Warehouse Dialog */}
+          <Dialog open={whDialogOpen} onOpenChange={setWhDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader><DialogTitle>Novo Armazém</DialogTitle></DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="space-y-1.5"><Label>Nome *</Label><Input value={whForm.name} onChange={e => setWhForm(f => ({ ...f, name: e.target.value }))} /></div>
+                <div className="space-y-1.5"><Label>Código *</Label><Input value={whForm.code} onChange={e => setWhForm(f => ({ ...f, code: e.target.value }))} /></div>
+                <div className="space-y-1.5"><Label>Endereço</Label><Input value={whForm.address} onChange={e => setWhForm(f => ({ ...f, address: e.target.value }))} /></div>
+              </div>
+              <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setWhDialogOpen(false)}>Cancelar</Button><Button onClick={addWarehouse}>Guardar</Button></div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Location Dialog */}
+          <Dialog open={locDialogOpen} onOpenChange={setLocDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader><DialogTitle>Nova Localização</DialogTitle></DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="space-y-1.5">
+                  <Label>Armazém *</Label>
+                  <Select value={locForm.warehouseId} onValueChange={v => setLocForm(f => ({ ...f, warehouseId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                    <SelectContent>{warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5"><Label>Nome *</Label><Input value={locForm.name} onChange={e => setLocForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Corredor C - Prateleira 3" /></div>
+                <div className="space-y-1.5"><Label>Zona</Label><Input value={locForm.zone} onChange={e => setLocForm(f => ({ ...f, zone: e.target.value }))} /></div>
+                <div className="space-y-1.5"><Label>Capacidade</Label><Input type="number" value={locForm.capacity} onChange={e => setLocForm(f => ({ ...f, capacity: e.target.value }))} /></div>
+              </div>
+              <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button><Button onClick={addLocation}>Guardar</Button></div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* NOVO PEDIDO */}
@@ -201,16 +639,16 @@ const InventoryPage = () => {
             <p className="text-sm text-muted-foreground">Crie novos pedidos de material com todos os detalhes necessários.</p>
             <StockRequestFormDialog onAdd={handleAddRequest} products={products} />
           </div>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
             <div className="px-5 py-3 border-b border-border bg-muted/50">
               <h3 className="text-sm font-semibold text-card-foreground">Pedidos Recentes</h3>
             </div>
             <div className="divide-y divide-border">
               {requests.slice(-5).reverse().map(req => (
-                <div key={req.id} className="px-5 py-3.5 flex items-center justify-between">
+                <div key={req.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-muted/30 transition-colors">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-mono text-muted-foreground">{req.code}</span>
+                      <Badge variant="outline" className="font-mono text-xs">{req.code}</Badge>
                       <span className="text-sm font-medium text-card-foreground">{req.productName}</span>
                       <StatusBadge status={req.eventType} />
                     </div>
@@ -244,7 +682,14 @@ const InventoryPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* DIÁLOGO DE CONFIRMAÇÃO DE ELIMINAÇÃO */}
+      {/* Refresh button */}
+      <div className="flex justify-center pt-2">
+        <Button variant="outline" className="gap-2" onClick={handleRefresh}>
+          <RefreshCw className="h-4 w-4" /> Atualizar Dados
+        </Button>
+      </div>
+
+      {/* DELETE DIALOG */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -255,7 +700,7 @@ const InventoryPage = () => {
           </AlertDialogHeader>
           <div className="flex justify-end gap-2">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => deleteId && handleDeleteProduct(deleteId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

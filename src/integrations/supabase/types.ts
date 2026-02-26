@@ -130,6 +130,7 @@ export type Database = {
           created_by: string
           department_id: string | null
           description: string | null
+          document_number: number
           id: string
           knowledge_area_id: string | null
           status: string
@@ -144,6 +145,7 @@ export type Database = {
           created_by: string
           department_id?: string | null
           description?: string | null
+          document_number?: number
           id?: string
           knowledge_area_id?: string | null
           status?: string
@@ -158,6 +160,7 @@ export type Database = {
           created_by?: string
           department_id?: string | null
           description?: string | null
+          document_number?: number
           id?: string
           knowledge_area_id?: string | null
           status?: string
@@ -183,6 +186,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inventory_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       knowledge_areas: {
         Row: {
