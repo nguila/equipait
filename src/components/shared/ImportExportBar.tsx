@@ -5,6 +5,11 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_ROWS = 10000;
+const MAX_FIELD_LENGTH = 500;
 
 interface Column {
   key: string;
@@ -77,21 +82,64 @@ const ImportExportBar = ({ data, columns, moduleName, onImport }: ImportExportBa
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onImport) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Ficheiro demasiado grande. Máximo: 5MB.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const wb = XLSX.read(evt.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
-        const mapped = rows.map((row) => {
-          const mapped: Record<string, any> = {};
+
+        if (rows.length > MAX_ROWS) {
+          toast.error(`Ficheiro excede o limite de ${MAX_ROWS} linhas.`);
+          return;
+        }
+
+        // Build a dynamic zod schema from column definitions
+        const fieldSchemas: Record<string, z.ZodTypeAny> = {};
+        for (const col of columns) {
+          fieldSchemas[col.key] = z.union([
+            z.string().max(MAX_FIELD_LENGTH),
+            z.number(),
+          ]).optional();
+        }
+        const RowSchema = z.object(fieldSchemas);
+
+        const validRows: Record<string, any>[] = [];
+        let skipped = 0;
+
+        rows.forEach((row) => {
+          const rawMapped: Record<string, any> = {};
           for (const col of columns) {
-            if (row[col.label] !== undefined) mapped[col.key] = row[col.label];
+            if (row[col.label] !== undefined) {
+              const val = row[col.label];
+              rawMapped[col.key] = typeof val === "string" ? val.slice(0, MAX_FIELD_LENGTH) : val;
+            }
           }
-          return mapped;
+          const parsed = RowSchema.safeParse(rawMapped);
+          if (parsed.success) {
+            validRows.push(parsed.data);
+          } else {
+            skipped++;
+          }
         });
-        onImport(mapped);
-        toast.success(`${mapped.length} registos importados.`);
+
+        if (validRows.length === 0) {
+          toast.error("Nenhum registo válido encontrado no ficheiro.");
+          return;
+        }
+
+        onImport(validRows);
+        const msg = skipped > 0
+          ? `${validRows.length} registos importados. ${skipped} linhas ignoradas por dados inválidos.`
+          : `${validRows.length} registos importados.`;
+        toast.success(msg);
       } catch {
         toast.error("Erro ao ler ficheiro. Verifique o formato.");
       }
