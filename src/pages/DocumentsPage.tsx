@@ -223,8 +223,13 @@ const DocumentsPage = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Documentos</h1>
-          <p className="text-sm text-muted-foreground">Repositório de documentação com anexos</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            Documentos
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Repositório de documentação com anexos e numeração automática</p>
         </div>
         <div className="flex items-center gap-2">
           <ImportExportBar data={filtered} columns={exportColumns} moduleName="Documentos" />
