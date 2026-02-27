@@ -72,7 +72,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     related_ticket_id: "",
     equipment_type: "",
     operating_system: "",
-    status: "open",
+    status: "pendente",
   });
 
   // Pre-fill form when editing
@@ -97,7 +97,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
         status: editingTicket.status,
       });
     } else if (!editingTicket && open) {
-      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "open" });
+      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "pendente" });
     }
   }, [editingTicket, open]);
 
@@ -191,7 +191,7 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
         toast.success("Ticket criado com sucesso");
       }
 
-      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "open" });
+      setForm({ title: "", description: "", priority: "medium", category: "", department_id: "", assigned_to: "", due_date: "", due_time: "", sla_hours: "", tags: [], related_ticket_id: "", equipment_type: "", operating_system: "", status: "pendente" });
       setFiles([]);
       onCreated();
       onOpenChange(false);
@@ -238,12 +238,11 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
                 <Label>Estado</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Aberto</SelectItem>
-                    <SelectItem value="in_progress">Em Progresso</SelectItem>
-                    <SelectItem value="waiting">Em Espera</SelectItem>
-                    <SelectItem value="resolved">Resolvido</SelectItem>
-                    <SelectItem value="closed">Fechado</SelectItem>
+                <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="em_tratamento">Em Tratamento</SelectItem>
+                    <SelectItem value="resolvido">Resolvido</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

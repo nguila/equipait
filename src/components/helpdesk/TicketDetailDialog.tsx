@@ -40,11 +40,10 @@ interface TicketDetailDialogProps {
 }
 
 const statusLabels: Record<string, string> = {
-  open: "Aberto",
-  in_progress: "Em Progresso",
-  waiting: "Em Espera",
-  resolved: "Resolvido",
-  closed: "Fechado",
+  pendente: "Pendente",
+  em_tratamento: "Em Tratamento",
+  resolvido: "Resolvido",
+  concluido: "Concluído",
 };
 
 const getPriorityColor = (priority: string) => {
