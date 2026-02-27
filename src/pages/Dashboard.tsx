@@ -88,9 +88,9 @@ const Dashboard = () => {
   const processTickets = useCallback((tickets: any[]) => {
     setStats({
       total: tickets.length,
-      open: tickets.filter((t) => t.status === "open").length,
-      inProgress: tickets.filter((t) => t.status === "in_progress").length,
-      resolved: tickets.filter((t) => t.status === "resolved" || t.status === "closed").length,
+      open: tickets.filter((t) => t.status === "pendente").length,
+      inProgress: tickets.filter((t) => t.status === "em_tratamento").length,
+      resolved: tickets.filter((t) => t.status === "resolvido" || t.status === "concluido").length,
       critical: tickets.filter((t) => t.priority === "critical" || t.priority === "high").length,
     });
     setAllTickets(tickets);
@@ -163,9 +163,9 @@ const Dashboard = () => {
 
   const statCards = [
     { label: "Total Tickets", value: stats.total, icon: TicketCheck, color: "text-primary" },
-    { label: "Em Aberto", value: stats.open, icon: Clock, color: "text-amber-500" },
-    { label: "Em Progresso", value: stats.inProgress, icon: Monitor, color: "text-blue-500" },
-    { label: "Resolvidos", value: stats.resolved, icon: CheckCircle2, color: "text-emerald-500" },
+    { label: "Pendentes", value: stats.open, icon: Clock, color: "text-amber-500" },
+    { label: "Em Tratamento", value: stats.inProgress, icon: Monitor, color: "text-blue-500" },
+    { label: "Resolvidos / Concluídos", value: stats.resolved, icon: CheckCircle2, color: "text-emerald-500" },
     { label: "Prioridade Alta", value: stats.critical, icon: AlertTriangle, color: "text-destructive" },
   ];
 
@@ -228,10 +228,10 @@ const Dashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="open">Aberto</SelectItem>
-                  <SelectItem value="in_progress">Em Progresso</SelectItem>
-                  <SelectItem value="resolved">Resolvido</SelectItem>
-                  <SelectItem value="closed">Fechado</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="em_tratamento">Em Tratamento</SelectItem>
+                  <SelectItem value="resolvido">Resolvido</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -272,13 +272,15 @@ const Dashboard = () => {
                       {t.priority}
                     </span>
                     <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
-                      t.status === "open"
+                      t.status === "pendente"
                         ? "bg-amber-500/10 text-amber-600"
-                        : t.status === "in_progress"
+                        : t.status === "em_tratamento"
                         ? "bg-blue-500/10 text-blue-600"
-                        : "bg-emerald-500/10 text-emerald-600"
+                        : t.status === "resolvido"
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "bg-emerald-700/10 text-emerald-700"
                     }`}>
-                      {t.status === "open" ? "Aberto" : t.status === "in_progress" ? "Em Prog." : "Resolvido"}
+                      {t.status === "pendente" ? "Pendente" : t.status === "em_tratamento" ? "Em Trat." : t.status === "resolvido" ? "Resolvido" : "Concluído"}
                     </span>
                   </div>
                 </div>

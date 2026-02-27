@@ -264,6 +264,7 @@ export const statusLabels: Record<string, string> = {
   regulatorio: 'Regulatório', operacional_cat: 'Operacional', inovacao: 'Inovação', outro: 'Outro',
   critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa',
   pendente: 'Pendente', em_preparacao: 'Em Preparação', entregue: 'Entregue',
+  em_tratamento: 'Em Tratamento', resolvido: 'Resolvido',
   requisicao: 'Requisição', devolucao: 'Devolução', transferencia: 'Transferência', abate: 'Abate',
   none: 'Sem Risco', low: 'Baixo', medium: 'Médio', high: 'Alto',
 };
@@ -289,6 +290,8 @@ export const statusColors: Record<string, string> = {
   media: 'bg-primary/10 text-primary',
   baixa: 'bg-muted text-muted-foreground',
   pendente: 'bg-warning/10 text-warning',
+  em_tratamento: 'bg-blue-500/10 text-blue-600',
+  resolvido: 'bg-emerald-500/10 text-emerald-600',
   em_preparacao: 'bg-primary/10 text-primary',
   entregue: 'bg-success/10 text-success',
   requisicao: 'bg-primary/10 text-primary',

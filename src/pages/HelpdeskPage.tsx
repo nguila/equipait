@@ -50,21 +50,19 @@ const getPriorityColor = (priority: string) => {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "resolved": return <CheckCircle className="h-4 w-4 text-success" />;
-    case "in_progress": return <Clock className="h-4 w-4 text-info" />;
-    case "open": return <AlertCircle className="h-4 w-4 text-warning" />;
-    case "closed": return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
-    case "waiting": return <Clock className="h-4 w-4 text-muted-foreground" />;
+    case "pendente": return <AlertCircle className="h-4 w-4 text-warning" />;
+    case "em_tratamento": return <Clock className="h-4 w-4 text-info" />;
+    case "resolvido": return <CheckCircle className="h-4 w-4 text-success" />;
+    case "concluido": return <MessageSquare className="h-4 w-4 text-emerald-700" />;
     default: return null;
   }
 };
 
 const statusLabels: Record<string, string> = {
-  open: "Aberto",
-  in_progress: "Em Progresso",
-  waiting: "Em Espera",
-  resolved: "Resolvido",
-  closed: "Fechado",
+  pendente: "Pendente",
+  em_tratamento: "Em Tratamento",
+  resolvido: "Resolvido",
+  concluido: "Concluído",
 };
 
 const exportColumns = [
@@ -128,10 +126,10 @@ const HelpdeskPage = () => {
   });
 
   const stats = {
-    open: tickets.filter((t) => t.status === "open").length,
-    in_progress: tickets.filter((t) => t.status === "in_progress").length,
-    critical: tickets.filter((t) => t.priority === "critical").length,
-    resolved: tickets.filter((t) => t.status === "resolved").length,
+    pendente: tickets.filter((t) => t.status === "pendente").length,
+    em_tratamento: tickets.filter((t) => t.status === "em_tratamento").length,
+    resolvido: tickets.filter((t) => t.status === "resolvido").length,
+    concluido: tickets.filter((t) => t.status === "concluido").length,
   };
 
   // Technicians: profiles that have tickets assigned to them or are in a department
@@ -257,10 +255,10 @@ const HelpdeskPage = () => {
         <TabsContent value="tickets" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { label: "Abertos", value: stats.open, icon: AlertCircle, color: "text-warning" },
-              { label: "Em Progresso", value: stats.in_progress, icon: Clock, color: "text-info" },
-              { label: "Críticos", value: stats.critical, icon: AlertCircle, color: "text-destructive" },
-              { label: "Resolvidos", value: stats.resolved, icon: CheckCircle, color: "text-success" },
+              { label: "Pendentes", value: stats.pendente, icon: AlertCircle, color: "text-warning" },
+              { label: "Em Tratamento", value: stats.em_tratamento, icon: Clock, color: "text-info" },
+              { label: "Resolvidos", value: stats.resolvido, icon: CheckCircle, color: "text-success" },
+              { label: "Concluídos", value: stats.concluido, icon: CheckCircle, color: "text-emerald-700" },
             ].map((s) => (
               <Card key={s.label}>
                 <CardContent className="pt-6">
@@ -300,14 +298,16 @@ const HelpdeskPage = () => {
           <Tabs defaultValue="all" className="w-full">
             <TabsList>
               <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="open">Abertos</TabsTrigger>
-              <TabsTrigger value="in_progress">Em Progresso</TabsTrigger>
-              <TabsTrigger value="resolved">Resolvidos</TabsTrigger>
+              <TabsTrigger value="pendente">Pendentes</TabsTrigger>
+              <TabsTrigger value="em_tratamento">Em Tratamento</TabsTrigger>
+              <TabsTrigger value="resolvido">Resolvidos</TabsTrigger>
+              <TabsTrigger value="concluido">Concluídos</TabsTrigger>
             </TabsList>
             <TabsContent value="all" className="space-y-3">{renderTickets(filtered)}</TabsContent>
-            <TabsContent value="open" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "open"))}</TabsContent>
-            <TabsContent value="in_progress" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "in_progress"))}</TabsContent>
-            <TabsContent value="resolved" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "resolved"))}</TabsContent>
+            <TabsContent value="pendente" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "pendente"))}</TabsContent>
+            <TabsContent value="em_tratamento" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "em_tratamento"))}</TabsContent>
+            <TabsContent value="resolvido" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "resolvido"))}</TabsContent>
+            <TabsContent value="concluido" className="space-y-3">{renderTickets(filtered.filter((t) => t.status === "concluido"))}</TabsContent>
           </Tabs>
         </TabsContent>
 
