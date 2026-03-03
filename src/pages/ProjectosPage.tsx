@@ -1,4 +1,4 @@
-import { FolderKanban, Plus, CalendarIcon, Filter } from "lucide-react";
+import { FolderKanban, Plus, CalendarIcon, Filter, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -45,6 +46,7 @@ const statusLabels: Record<string, string> = { planning: "Planeamento", in_progr
 const ProjectosPage = () => {
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "", description: "", status: "planning", priority: "medium",
     responsible: "", technician: "",
@@ -100,6 +102,14 @@ const ProjectosPage = () => {
     toast.success("Projecto criado com sucesso");
     resetForm();
     setDialogOpen(false);
+    fetchProjects();
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (error) { toast.error("Erro ao eliminar projecto"); console.error(error); return; }
+    toast.success("Projecto eliminado com sucesso");
+    setDeleteId(null);
     fetchProjects();
   };
 
@@ -181,6 +191,7 @@ const ProjectosPage = () => {
                   <TableHead>Técnico</TableHead>
                   <TableHead>Início</TableHead>
                   <TableHead>Fim</TableHead>
+                  <TableHead className="w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -193,6 +204,11 @@ const ProjectosPage = () => {
                     <TableCell>{getUserName(p.technician_id)}</TableCell>
                     <TableCell>{p.start_date ? format(new Date(p.start_date), "dd/MM/yyyy") : "—"}</TableCell>
                     <TableCell>{p.end_date ? format(new Date(p.end_date), "dd/MM/yyyy") : "—"}</TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(p.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -200,6 +216,20 @@ const ProjectosPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Projecto?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação é irreversível. O projecto será permanentemente eliminado.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && handleDelete(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

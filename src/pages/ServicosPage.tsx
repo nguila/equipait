@@ -1,4 +1,4 @@
-import { Wrench, Plus, CalendarIcon, Filter } from "lucide-react";
+import { Wrench, Plus, CalendarIcon, Filter, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ const typeLabels: Record<string, string> = { manutencao: "Manutenção", instala
 const ServicosPage = () => {
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "", description: "", type: "manutencao", priority: "medium",
     responsible: "", technician: "",
@@ -103,6 +105,14 @@ const ServicosPage = () => {
     toast.success("Serviço criado com sucesso");
     resetForm();
     setDialogOpen(false);
+    fetchServices();
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("services").delete().eq("id", id);
+    if (error) { toast.error("Erro ao eliminar serviço"); console.error(error); return; }
+    toast.success("Serviço eliminado com sucesso");
+    setDeleteId(null);
     fetchServices();
   };
 
@@ -185,6 +195,7 @@ const ServicosPage = () => {
                   <TableHead>Técnico</TableHead>
                   <TableHead>Início</TableHead>
                   <TableHead>Fim</TableHead>
+                  <TableHead className="w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -198,6 +209,11 @@ const ServicosPage = () => {
                     <TableCell>{getUserName(s.technician_id)}</TableCell>
                     <TableCell>{s.start_date ? format(new Date(s.start_date), "dd/MM/yyyy") : "—"}</TableCell>
                     <TableCell>{s.end_date ? format(new Date(s.end_date), "dd/MM/yyyy") : "—"}</TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(s.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -206,7 +222,21 @@ const ServicosPage = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog - keep existing form */}
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Serviço?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação é irreversível. O serviço será permanentemente eliminado.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && handleDelete(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog - create form */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Serviço</DialogTitle></DialogHeader>
