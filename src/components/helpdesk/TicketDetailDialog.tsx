@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Send, Clock, MessageSquare } from "lucide-react";
+import { Send, Clock, MessageSquare, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -62,6 +62,8 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
 
   const fetchComments = async () => {
     if (!ticket) return;
@@ -97,6 +99,30 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
       toast.error(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editContent.trim()) return;
+    try {
+      const { error } = await supabase.from("ticket_comments").update({ content: editContent.trim() }).eq("id", commentId);
+      if (error) throw error;
+      setEditingId(null);
+      fetchComments();
+      toast.success("Comentário atualizado");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase.from("ticket_comments").delete().eq("id", commentId);
+      if (error) throw error;
+      fetchComments();
+      toast.success("Comentário eliminado");
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -165,8 +191,11 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
             <p className="text-sm text-muted-foreground text-center py-4">Sem comentários ainda</p>
           ) : (
             <div className="space-y-3">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
+              {comments.map((comment) => {
+                const isOwn = comment.user_id === user?.id;
+                const isEditing = editingId === comment.id;
+                return (
+                <div key={comment.id} className="flex gap-3 group">
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {getInitials(comment.user_id)}
@@ -179,11 +208,32 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
                         <Clock className="h-3 w-3" />
                         {new Date(comment.created_at).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
+                      {isOwn && !isEditing && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-auto">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditingId(comment.id); setEditContent(comment.content); }}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => handleDeleteComment(comment.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">{comment.content}</p>
+                    {isEditing ? (
+                      <div className="flex gap-2 mt-1">
+                        <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={2} className="flex-1 text-sm" />
+                        <div className="flex flex-col gap-1">
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleEditComment(comment.id)}><Check className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingId(null)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap">{comment.content}</p>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </ScrollArea>
