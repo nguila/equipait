@@ -54,9 +54,8 @@ const InventoryPage = () => {
   const [whDialogOpen, setWhDialogOpen] = useState(false);
   const [whForm, setWhForm] = useState({ name: "", code: "", address: "" });
 
-  // Location form
-  const [locDialogOpen, setLocDialogOpen] = useState(false);
-  const [locForm, setLocForm] = useState({ warehouseId: "", name: "", zone: "", capacity: "" });
+  // Delete warehouse
+  const [deleteWhId, setDeleteWhId] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -174,13 +173,12 @@ const InventoryPage = () => {
     toast.success("Armazém criado.");
   };
 
-  // Location CRUD
-  const addLocation = () => {
-    if (!locForm.warehouseId || !locForm.name) { toast.error("Preencha os campos obrigatórios."); return; }
-    setLocations(prev => [...prev, { id: `wl${Date.now()}`, warehouseId: locForm.warehouseId, name: locForm.name, zone: locForm.zone, capacity: Number(locForm.capacity) || 0, currentOccupancy: 0 }]);
-    setLocDialogOpen(false);
-    setLocForm({ warehouseId: "", name: "", zone: "", capacity: "" });
-    toast.success("Localização criada.");
+  // Delete warehouse
+  const deleteWarehouse = (id: string) => {
+    setWarehouses(prev => prev.filter(w => w.id !== id));
+    setLocations(prev => prev.filter(l => l.warehouseId !== id));
+    setDeleteWhId(null);
+    toast.success("Armazém eliminado.");
   };
 
   const downloadTemplate = () => {
@@ -549,14 +547,9 @@ const InventoryPage = () => {
               <h2 className="text-lg font-semibold text-foreground">Armazéns & Localizações</h2>
               <p className="text-sm text-muted-foreground">Gerir armazéns e as suas localizações internas</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" className="gap-1.5" onClick={() => setWhDialogOpen(true)}>
-                <Plus className="h-4 w-4" />Novo Armazém
-              </Button>
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setLocDialogOpen(true)}>
-                <MapPin className="h-4 w-4" />Nova Localização
-              </Button>
-            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => setWhDialogOpen(true)}>
+              <Plus className="h-4 w-4" />Novo Armazém
+            </Button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -565,14 +558,19 @@ const InventoryPage = () => {
               return (
                 <Card key={wh.id} className="hover-lift">
                   <CardContent className="pt-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <WarehouseIcon className="h-5 w-5 text-primary" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                          <WarehouseIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-card-foreground">{wh.name}</h3>
+                          <p className="text-xs text-muted-foreground">{wh.code} · {wh.address}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-card-foreground">{wh.name}</h3>
-                        <p className="text-xs text-muted-foreground">{wh.code} · {wh.address}</p>
-                      </div>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleteWhId(wh.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                     <div className="space-y-2">
                       {locs.length === 0 && <p className="text-xs text-muted-foreground italic">Sem localizações definidas</p>}
@@ -612,25 +610,19 @@ const InventoryPage = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Location Dialog */}
-          <Dialog open={locDialogOpen} onOpenChange={setLocDialogOpen}>
-            <DialogContent className="max-w-sm">
-              <DialogHeader><DialogTitle>Nova Localização</DialogTitle></DialogHeader>
-              <div className="space-y-3 py-2">
-                <div className="space-y-1.5">
-                  <Label>Armazém *</Label>
-                  <Select value={locForm.warehouseId} onValueChange={v => setLocForm(f => ({ ...f, warehouseId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                    <SelectContent>{warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5"><Label>Nome *</Label><Input value={locForm.name} onChange={e => setLocForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Corredor C - Prateleira 3" /></div>
-                <div className="space-y-1.5"><Label>Zona</Label><Input value={locForm.zone} onChange={e => setLocForm(f => ({ ...f, zone: e.target.value }))} /></div>
-                <div className="space-y-1.5"><Label>Capacidade</Label><Input type="number" value={locForm.capacity} onChange={e => setLocForm(f => ({ ...f, capacity: e.target.value }))} /></div>
+          {/* Delete Warehouse Confirmation */}
+          <AlertDialog open={!!deleteWhId} onOpenChange={() => setDeleteWhId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar Armazém?</AlertDialogTitle>
+                <AlertDialogDescription>Esta ação irá eliminar o armazém e todas as suas localizações associadas.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex justify-end gap-2">
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => deleteWhId && deleteWarehouse(deleteWhId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
               </div>
-              <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button><Button onClick={addLocation}>Guardar</Button></div>
-            </DialogContent>
-          </Dialog>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
 
         {/* NOVO PEDIDO */}
