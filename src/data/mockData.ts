@@ -90,11 +90,8 @@ export interface InventoryItem {
   warehouseId: string;
   locationId: string;
   departmentId: string;
-  totalQty: number;
-  availableQty: number;
-  minStock: number;
-  maxStock: number;
-  unit: string;
+  userId: string;
+  userName: string;
   status: 'ativo' | 'inativo';
 }
 
@@ -222,12 +219,12 @@ export const warehouseLocations: WarehouseLocation[] = [
 ];
 
 export const inventoryItems: InventoryItem[] = [
-  { id: 'i1', code: 'INV-001', name: 'MacBook Pro 16"', category: 'Equipamento Informático', location: 'Sede - Piso 3', warehouseId: 'w1', locationId: 'wl1', departmentId: 'd1', totalQty: 25, availableQty: 4, minStock: 5, maxStock: 30, unit: 'un', status: 'ativo' },
-  { id: 'i2', code: 'INV-002', name: 'Monitor Dell 27" 4K', category: 'Equipamento Informático', location: 'Sede - Armazém', warehouseId: 'w1', locationId: 'wl2', departmentId: 'd1', totalQty: 40, availableQty: 8, minStock: 10, maxStock: 50, unit: 'un', status: 'ativo' },
-  { id: 'i3', code: 'INV-003', name: 'Licença AutoCAD', category: 'Software', location: 'Digital', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd3', totalQty: 15, availableQty: 3, minStock: 5, maxStock: 20, unit: 'licença', status: 'ativo' },
-  { id: 'i4', code: 'INV-004', name: 'Servidor Dell PowerEdge R750', category: 'Infraestrutura', location: 'Datacenter', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd1', totalQty: 8, availableQty: 2, minStock: 2, maxStock: 12, unit: 'un', status: 'ativo' },
-  { id: 'i5', code: 'INV-005', name: 'Kit Ferramentas Elétricas', category: 'Equipamento Industrial', location: 'Fábrica - Armazém A', warehouseId: 'w2', locationId: 'wl4', departmentId: 'd3', totalQty: 12, availableQty: 5, minStock: 3, maxStock: 15, unit: 'kit', status: 'ativo' },
-  { id: 'i6', code: 'INV-006', name: 'Projetor Epson EB-L260F', category: 'Audiovisual', location: 'Sede - Piso 2', warehouseId: 'w1', locationId: 'wl3', departmentId: 'd2', totalQty: 6, availableQty: 2, minStock: 2, maxStock: 10, unit: 'un', status: 'ativo' },
+  { id: 'i1', code: 'INV-001', name: 'MacBook Pro 16"', category: 'Equipamento Informático', location: 'Sede - Piso 3', warehouseId: 'w1', locationId: 'wl1', departmentId: 'd1', userId: 'r1', userName: 'Ana Rodrigues', status: 'ativo' },
+  { id: 'i2', code: 'INV-002', name: 'Monitor Dell 27" 4K', category: 'Equipamento Informático', location: 'Sede - Armazém', warehouseId: 'w1', locationId: 'wl2', departmentId: 'd1', userId: 'r2', userName: 'Miguel Santos', status: 'ativo' },
+  { id: 'i3', code: 'INV-003', name: 'Licença AutoCAD', category: 'Software', location: 'Digital', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd3', userId: 'r3', userName: 'Carlos Ferreira', status: 'ativo' },
+  { id: 'i4', code: 'INV-004', name: 'Servidor Dell PowerEdge R750', category: 'Infraestrutura', location: 'Datacenter', warehouseId: 'w3', locationId: 'wl6', departmentId: 'd1', userId: 'r1', userName: 'Ana Rodrigues', status: 'ativo' },
+  { id: 'i5', code: 'INV-005', name: 'Kit Ferramentas Elétricas', category: 'Equipamento Industrial', location: 'Fábrica - Armazém A', warehouseId: 'w2', locationId: 'wl4', departmentId: 'd3', userId: 'r3', userName: 'Carlos Ferreira', status: 'ativo' },
+  { id: 'i6', code: 'INV-006', name: 'Projetor Epson EB-L260F', category: 'Audiovisual', location: 'Sede - Piso 2', warehouseId: 'w1', locationId: 'wl3', departmentId: 'd2', userId: 'r4', userName: 'Sofia Almeida', status: 'ativo' },
 ];
 
 export const stockRequests: StockRequest[] = [

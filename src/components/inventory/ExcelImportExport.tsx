@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useRef } from "react";
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_ROWS = 10000;
 
 const InventoryRowSchema = z.object({
@@ -16,11 +16,7 @@ const InventoryRowSchema = z.object({
   warehouse: z.string().trim().max(200).default(""),
   location: z.string().trim().max(200).default(""),
   department: z.string().trim().max(200).default(""),
-  totalQty: z.number().int().min(0).max(1_000_000).default(0),
-  availableQty: z.number().int().min(0).max(1_000_000).default(0),
-  minStock: z.number().int().min(0).max(1_000_000).default(0),
-  maxStock: z.number().int().min(0).max(1_000_000).default(0),
-  unit: z.string().trim().min(1).max(20).default("un"),
+  userName: z.string().trim().max(200).default(""),
   status: z.string().trim().max(20).default("ativo"),
 });
 
@@ -40,11 +36,7 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
       Armazém: p.location || "",
       Localização: p.locationId || "",
       Departamento: p.departmentId || "",
-      "Qtd. Total": p.totalQty,
-      "Qtd. Disponível": p.availableQty,
-      "Stock Mín.": p.minStock,
-      "Stock Máx.": p.maxStock,
-      Unidade: p.unit,
+      Utilizador: p.userName || "",
       Estado: p.status,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
@@ -87,11 +79,7 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
             warehouse: row["Armazém"] != null ? String(row["Armazém"]) : "",
             location: row["Localização"] != null ? String(row["Localização"]) : "",
             department: row["Departamento"] != null ? String(row["Departamento"]) : "",
-            totalQty: Number(row["Qtd. Total"]) || 0,
-            availableQty: Number(row["Qtd. Disponível"]) || 0,
-            minStock: Number(row["Stock Mín."]) || 0,
-            maxStock: Number(row["Stock Máx."]) || 0,
-            unit: row["Unidade"] != null ? String(row["Unidade"]) : "un",
+            userName: row["Utilizador"] != null ? String(row["Utilizador"]) : "",
             status: row["Estado"] != null ? String(row["Estado"]) : "ativo",
           });
 
@@ -105,11 +93,8 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
               warehouseId: "",
               locationId: parsed.data.location,
               departmentId: "",
-              totalQty: parsed.data.totalQty,
-              availableQty: parsed.data.availableQty,
-              minStock: parsed.data.minStock,
-              maxStock: parsed.data.maxStock,
-              unit: parsed.data.unit,
+              userId: "",
+              userName: parsed.data.userName,
               status: (parsed.data.status as "ativo" | "inativo") || "ativo",
             });
           } else {

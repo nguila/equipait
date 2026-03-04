@@ -9,13 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { AlertTriangle, Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, TrendingDown, CheckCircle } from "lucide-react";
+import { Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, User } from "lucide-react";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
 import OrdersTable from "@/components/inventory/OrdersTable";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -34,29 +33,24 @@ const InventoryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Categories & Departments from DB
   const [categories, setCategories] = useState<InventoryCategory[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>(initialWarehouses);
   const [locations, setLocations] = useState<WarehouseLocation[]>(initialLocations);
 
-  // Category form
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [catForm, setCatForm] = useState({ name: "", description: "" });
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
 
-  // Department form
   const [deptDialogOpen, setDeptDialogOpen] = useState(false);
   const [deptForm, setDeptForm] = useState({ name: "", description: "" });
   const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
 
-  // Warehouse form
   const [whDialogOpen, setWhDialogOpen] = useState(false);
   const [whForm, setWhForm] = useState({ name: "", code: "", address: "" });
+  const [editingWhId, setEditingWhId] = useState<string | null>(null);
 
-  // Delete warehouse
   const [deleteWhId, setDeleteWhId] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
@@ -80,7 +74,6 @@ const InventoryPage = () => {
   });
   const filteredRequests = requests.filter(r => orderFilter === "all" || r.status === orderFilter);
 
-  // Auto-numbering for products
   const getNextProductCode = () => {
     const nums = products.map(p => {
       const m = p.code.match(/INV-(\d+)/);
@@ -165,15 +158,20 @@ const InventoryPage = () => {
   };
 
   // Warehouse CRUD
-  const addWarehouse = () => {
+  const handleSaveWarehouse = () => {
     if (!whForm.name || !whForm.code) { toast.error("Preencha nome e código."); return; }
-    setWarehouses(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
+    if (editingWhId) {
+      setWarehouses(prev => prev.map(w => w.id === editingWhId ? { ...w, name: whForm.name, code: whForm.code, address: whForm.address } : w));
+      toast.success("Armazém atualizado.");
+    } else {
+      setWarehouses(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
+      toast.success("Armazém criado.");
+    }
     setWhDialogOpen(false);
     setWhForm({ name: "", code: "", address: "" });
-    toast.success("Armazém criado.");
+    setEditingWhId(null);
   };
 
-  // Delete warehouse
   const deleteWarehouse = (id: string) => {
     setWarehouses(prev => prev.filter(w => w.id !== id));
     setLocations(prev => prev.filter(l => l.warehouseId !== id));
@@ -183,13 +181,12 @@ const InventoryPage = () => {
 
   const downloadTemplate = () => {
     const templateData = [
-      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Localização": "Sala 1", "Departamento": "TI", "Qtd. Total": 10, "Qtd. Disponível": 8, "Stock Mín.": 2, "Stock Máx.": 50, "Unidade": "un", "Estado": "ativo" },
-      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Localização": "", "Departamento": "", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un", "Estado": "ativo" },
+      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Localização": "Sala 1", "Departamento": "TI", "Utilizador": "João Silva", "Estado": "ativo" },
+      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Localização": "", "Departamento": "", "Utilizador": "", "Estado": "ativo" },
     ];
     const ws = XLSX.utils.json_to_sheet(templateData);
     ws["!cols"] = [
-      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 18 },
-      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
+      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 10 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template Inventário");
@@ -197,11 +194,7 @@ const InventoryPage = () => {
     toast.success("Template Excel descarregado.");
   };
 
-  // Stats
   const totalProducts = products.length;
-  const lowStock = products.filter(p => p.availableQty <= p.minStock);
-  const healthyStock = products.filter(p => p.availableQty > p.minStock);
-  const outOfStock = products.filter(p => p.availableQty === 0);
 
   const handleRefresh = () => {
     fetchData();
@@ -219,38 +212,44 @@ const InventoryPage = () => {
             </div>
             Inventário & Ativos
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Gestão de produtos, stock, armazéns, categorias e pedidos de material</p>
+          <p className="text-sm text-muted-foreground mt-1">Gestão de produtos, armazéns, categorias e pedidos de material</p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        {[
-          { label: "Total Produtos", value: totalProducts, icon: Package, color: "text-primary", bg: "bg-primary/10" },
-          { label: "Stock Saudável", value: healthyStock.length, icon: CheckCircle, color: "text-success", bg: "bg-success/10" },
-          { label: "Stock Baixo", value: lowStock.length, icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10" },
-          { label: "Sem Stock", value: outOfStock.length, icon: TrendingDown, color: "text-destructive", bg: "bg-destructive/10" },
-        ].map((s) => (
-          <Card key={s.label} className="hover-lift">
-            <CardContent className="pt-5 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
-                  <p className="text-2xl font-bold mt-1">{s.value}</p>
-                </div>
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.bg}`}>
-                  <s.icon className={`h-5 w-5 ${s.color}`} />
-                </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="hover-lift">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Produtos</p>
+                <p className="text-2xl font-bold mt-1">{totalProducts}</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="hover-lift">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Utilizadores Associados</p>
+                <p className="text-2xl font-bold mt-1">{new Set(products.map(p => p.userName).filter(Boolean)).size}</p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="products" className="space-y-4">
         <TabsList className="bg-muted/60 p-1 flex-wrap">
           <TabsTrigger value="products" className="gap-1.5 text-xs"><Package className="h-4 w-4" />Produtos</TabsTrigger>
-          <TabsTrigger value="stock" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" />Estado Stock</TabsTrigger>
+          <TabsTrigger value="stock" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" />Resumo</TabsTrigger>
           <TabsTrigger value="categories" className="gap-1.5 text-xs"><FolderOpen className="h-4 w-4" />Categorias</TabsTrigger>
           <TabsTrigger value="departments" className="gap-1.5 text-xs"><Building2 className="h-4 w-4" />Departamentos</TabsTrigger>
           <TabsTrigger value="warehouses" className="gap-1.5 text-xs"><MapPin className="h-4 w-4" />Armazéns</TabsTrigger>
@@ -283,18 +282,13 @@ const InventoryPage = () => {
                   warehouseName: warehouses.find(w => w.id === item.warehouseId)?.name || item.location || "",
                   departmentName: departments.find(d => d.id === item.departmentId)?.name || mockDepartments.find(d => d.id === item.departmentId)?.name || "",
                 }))}
-
                 columns={[
                   { key: "code", label: "Código" },
                   { key: "name", label: "Nome" },
                   { key: "category", label: "Categoria" },
                   { key: "warehouseName", label: "Armazém" },
                   { key: "departmentName", label: "Departamento" },
-                  { key: "totalQty", label: "Qtd. Total" },
-                  { key: "availableQty", label: "Qtd. Disponível" },
-                  { key: "minStock", label: "Stock Mín." },
-                  { key: "maxStock", label: "Stock Máx." },
-                  { key: "unit", label: "Unidade" },
+                  { key: "userName", label: "Utilizador" },
                   { key: "status", label: "Estado" },
                 ]}
                 moduleName="Inventário"
@@ -313,11 +307,8 @@ const InventoryPage = () => {
                       warehouseId: wh?.id || "",
                       locationId: "",
                       departmentId: dept?.id || "",
-                      totalQty: Number(row.totalQty || row["Qtd. Total"]) || 0,
-                      availableQty: Number(row.availableQty || row["Qtd. Disponível"]) || 0,
-                      minStock: Number(row.minStock || row["Stock Mín."]) || 0,
-                      maxStock: Number(row.maxStock || row["Stock Máx."]) || 0,
-                      unit: String(row.unit || row["Unidade"] || "un"),
+                      userId: "",
+                      userName: String(row.userName || row["Utilizador"] || ""),
                       status: "ativo" as const,
                     };
                   });
@@ -340,19 +331,16 @@ const InventoryPage = () => {
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoria</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Localização</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Departamento</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Disponível</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stock</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Utilizador</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
+                  <tr><td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
                 ) : filtered.map((item) => {
                   const dept = departments.find((d) => d.id === item.departmentId) || mockDepartments.find(d => d.id === item.departmentId);
-                  const lowStockItem = item.availableQty <= item.minStock;
-                  const pct = item.maxStock > 0 ? Math.round((item.availableQty / item.maxStock) * 100) : 0;
                   return (
                     <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3.5">
@@ -372,18 +360,10 @@ const InventoryPage = () => {
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{item.location}</td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{dept?.name || "—"}</td>
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16">
-                            <Progress value={pct} className={`h-1.5 ${item.availableQty === 0 ? "[&>div]:bg-destructive" : lowStockItem ? "[&>div]:bg-warning" : ""}`} />
-                          </div>
-                          <span className={`text-sm font-semibold ${lowStockItem ? "text-destructive" : "text-card-foreground"}`}>
-                            {item.availableQty}/{item.totalQty}
-                          </span>
-                          {lowStockItem && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                        <div className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm text-card-foreground">{item.userName || "—"}</span>
                         </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className="text-xs text-muted-foreground">mín: {item.minStock} / máx: {item.maxStock}</span>
                       </td>
                       <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
                       <td className="px-5 py-3.5 flex items-center gap-1">
@@ -403,41 +383,33 @@ const InventoryPage = () => {
           </div>
         </TabsContent>
 
-        {/* ESTADO DO STOCK */}
+        {/* RESUMO */}
         <TabsContent value="stock">
           <div className="space-y-6">
             <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
               <div className="px-5 py-3 border-b border-border bg-muted/50">
-                <h3 className="text-sm font-semibold text-card-foreground">Estado do Stock por Produto</h3>
+                <h3 className="text-sm font-semibold text-card-foreground">Produtos por Utilizador</h3>
               </div>
               <div className="divide-y divide-border">
-                {products.map(p => {
-                  const pct = p.maxStock > 0 ? Math.round((p.availableQty / p.maxStock) * 100) : 0;
-                  const isLow = p.availableQty <= p.minStock;
-                  const isEmpty = p.availableQty === 0;
-                  return (
-                    <div key={p.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-muted/30 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-card-foreground">{p.name}</span>
-                          {isLow && <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
-                          {isEmpty && <Badge variant="destructive" className="text-[10px]">ESGOTADO</Badge>}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{p.code} · {p.category}</p>
+                {products.map(p => (
+                  <div key={p.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-card-foreground">{p.name}</span>
                       </div>
-                      <div className="w-40 flex items-center gap-2">
-                        <Progress value={pct} className={`h-2 flex-1 ${isEmpty ? "[&>div]:bg-destructive" : isLow ? "[&>div]:bg-warning" : ""}`} />
-                        <span className="text-xs font-medium text-muted-foreground w-10 text-right">{pct}%</span>
-                      </div>
-                      <div className="text-right w-24">
-                        <span className={`text-sm font-semibold ${isEmpty ? "text-destructive" : isLow ? "text-warning" : "text-card-foreground"}`}>
-                          {p.availableQty}/{p.maxStock}
-                        </span>
-                        <p className="text-xs text-muted-foreground">mín: {p.minStock}</p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">{p.code} · {p.category}</p>
                     </div>
-                  );
-                })}
+                    <div className="flex items-center gap-2">
+                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-sm text-card-foreground">{p.userName || "—"}</span>
+                    </div>
+                    <div className="text-right w-20">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                        {p.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -557,14 +529,14 @@ const InventoryPage = () => {
           </Dialog>
         </TabsContent>
 
-        {/* ARMAZÉNS & LOCALIZAÇÕES */}
+        {/* ARMAZÉNS */}
         <TabsContent value="warehouses" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Armazéns & Localizações</h2>
               <p className="text-sm text-muted-foreground">Gerir armazéns e as suas localizações internas</p>
             </div>
-            <Button size="sm" className="gap-1.5" onClick={() => setWhDialogOpen(true)}>
+            <Button size="sm" className="gap-1.5" onClick={() => { setWhForm({ name: "", code: "", address: "" }); setEditingWhId(null); setWhDialogOpen(true); }}>
               <Plus className="h-4 w-4" />Novo Armazém
             </Button>
           </div>
@@ -585,9 +557,14 @@ const InventoryPage = () => {
                           <p className="text-xs text-muted-foreground">{wh.code} · {wh.address}</p>
                         </div>
                       </div>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteWhId(wh.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" onClick={() => { setWhForm({ name: wh.name, code: wh.code, address: wh.address }); setEditingWhId(wh.id); setWhDialogOpen(true); }}>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => setDeleteWhId(wh.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       {locs.length === 0 && <p className="text-xs text-muted-foreground italic">Sem localizações definidas</p>}
@@ -598,10 +575,6 @@ const InventoryPage = () => {
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium text-card-foreground">{loc.name}</span>
                               <Badge variant="outline" className="text-[10px]">{loc.zone}</Badge>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Progress value={pct} className="h-1.5 flex-1" />
-                              <span className="text-xs text-muted-foreground">{pct}%</span>
                             </div>
                             <p className="text-xs text-muted-foreground">{loc.currentOccupancy}/{loc.capacity} ocupados</p>
                           </div>
@@ -617,13 +590,13 @@ const InventoryPage = () => {
           {/* Warehouse Dialog */}
           <Dialog open={whDialogOpen} onOpenChange={setWhDialogOpen}>
             <DialogContent className="max-w-sm">
-              <DialogHeader><DialogTitle>Novo Armazém</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingWhId ? "Editar Armazém" : "Novo Armazém"}</DialogTitle></DialogHeader>
               <div className="space-y-3 py-2">
                 <div className="space-y-1.5"><Label>Nome *</Label><Input value={whForm.name} onChange={e => setWhForm(f => ({ ...f, name: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label>Código *</Label><Input value={whForm.code} onChange={e => setWhForm(f => ({ ...f, code: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label>Endereço</Label><Input value={whForm.address} onChange={e => setWhForm(f => ({ ...f, address: e.target.value }))} /></div>
               </div>
-              <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setWhDialogOpen(false)}>Cancelar</Button><Button onClick={addWarehouse}>Guardar</Button></div>
+              <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setWhDialogOpen(false)}>Cancelar</Button><Button onClick={handleSaveWarehouse}>{editingWhId ? "Atualizar" : "Guardar"}</Button></div>
             </DialogContent>
           </Dialog>
 
