@@ -183,11 +183,17 @@ const InventoryPage = () => {
 
   const downloadTemplate = () => {
     const templateData = [
-      { "Código": "INV-XXX", "Nome": "Nome do Produto", "Categoria": "Categoria", "Localização": "Local", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un" },
+      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Departamento": "TI", "Qtd. Total": 10, "Qtd. Disponível": 8, "Stock Mín.": 2, "Stock Máx.": 50, "Unidade": "un" },
+      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Departamento": "", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un" },
     ];
     const ws = XLSX.utils.json_to_sheet(templateData);
+    // Auto-size columns
+    ws["!cols"] = [
+      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 18 },
+      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 },
+    ];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.utils.book_append_sheet(wb, ws, "Template Inventário");
     XLSX.writeFile(wb, "template_inventario.xlsx");
     toast.success("Template Excel descarregado.");
   };
@@ -273,12 +279,18 @@ const InventoryPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <ImportExportBar
-                data={filtered}
+                data={filtered.map(item => ({
+                  ...item,
+                  warehouseName: warehouses.find(w => w.id === item.warehouseId)?.name || item.location || "",
+                  departmentName: departments.find(d => d.id === item.departmentId)?.name || mockDepartments.find(d => d.id === item.departmentId)?.name || "",
+                }))}
+
                 columns={[
                   { key: "code", label: "Código" },
                   { key: "name", label: "Nome" },
                   { key: "category", label: "Categoria" },
-                  { key: "location", label: "Localização" },
+                  { key: "warehouseName", label: "Armazém" },
+                  { key: "departmentName", label: "Departamento" },
                   { key: "totalQty", label: "Qtd. Total" },
                   { key: "availableQty", label: "Qtd. Disponível" },
                   { key: "minStock", label: "Stock Mín." },
@@ -288,22 +300,28 @@ const InventoryPage = () => {
                 ]}
                 moduleName="Inventário"
                 onImport={(rows) => {
-                  const items: InventoryItem[] = rows.map((row, idx) => ({
-                    id: `imp_${Date.now()}_${idx}`,
-                    code: String(row.code || row["Código"] || ""),
-                    name: String(row.name || row["Nome"] || ""),
-                    category: String(row.category || row["Categoria"] || ""),
-                    location: String(row.location || row["Localização"] || ""),
-                    warehouseId: "",
-                    locationId: "",
-                    departmentId: "",
-                    totalQty: Number(row.totalQty || row["Qtd. Total"]) || 0,
-                    availableQty: Number(row.availableQty || row["Qtd. Disponível"]) || 0,
-                    minStock: Number(row.minStock || row["Stock Mín."]) || 0,
-                    maxStock: Number(row.maxStock || row["Stock Máx."]) || 0,
-                    unit: String(row.unit || row["Unidade"] || "un"),
-                    status: "ativo" as const,
-                  }));
+                  const items: InventoryItem[] = rows.map((row, idx) => {
+                    const whName = String(row.warehouseName || row["Armazém"] || "");
+                    const deptName = String(row.departmentName || row["Departamento"] || "");
+                    const wh = warehouses.find(w => w.name.toLowerCase() === whName.toLowerCase());
+                    const dept = departments.find(d => d.name.toLowerCase() === deptName.toLowerCase());
+                    return {
+                      id: `imp_${Date.now()}_${idx}`,
+                      code: String(row.code || row["Código"] || ""),
+                      name: String(row.name || row["Nome"] || ""),
+                      category: String(row.category || row["Categoria"] || ""),
+                      location: whName,
+                      warehouseId: wh?.id || "",
+                      locationId: "",
+                      departmentId: dept?.id || "",
+                      totalQty: Number(row.totalQty || row["Qtd. Total"]) || 0,
+                      availableQty: Number(row.availableQty || row["Qtd. Disponível"]) || 0,
+                      minStock: Number(row.minStock || row["Stock Mín."]) || 0,
+                      maxStock: Number(row.maxStock || row["Stock Máx."]) || 0,
+                      unit: String(row.unit || row["Unidade"] || "un"),
+                      status: "ativo" as const,
+                    };
+                  });
                   handleImportProducts(items);
                 }}
               />
