@@ -183,14 +183,13 @@ const InventoryPage = () => {
 
   const downloadTemplate = () => {
     const templateData = [
-      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Departamento": "TI", "Qtd. Total": 10, "Qtd. Disponível": 8, "Stock Mín.": 2, "Stock Máx.": 50, "Unidade": "un" },
-      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Departamento": "", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un" },
+      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Localização": "Sala 1", "Departamento": "TI", "Qtd. Total": 10, "Qtd. Disponível": 8, "Stock Mín.": 2, "Stock Máx.": 50, "Unidade": "un", "Estado": "ativo" },
+      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Localização": "", "Departamento": "", "Qtd. Total": 0, "Qtd. Disponível": 0, "Stock Mín.": 0, "Stock Máx.": 0, "Unidade": "un", "Estado": "ativo" },
     ];
     const ws = XLSX.utils.json_to_sheet(templateData);
-    // Auto-size columns
     ws["!cols"] = [
-      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 18 },
-      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 },
+      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 18 },
+      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template Inventário");
