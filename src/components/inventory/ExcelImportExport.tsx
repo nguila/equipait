@@ -14,12 +14,14 @@ const InventoryRowSchema = z.object({
   name: z.string().trim().min(1, "Nome obrigatório").max(200, "Nome demasiado longo"),
   category: z.string().trim().max(100).default(""),
   warehouse: z.string().trim().max(200).default(""),
+  location: z.string().trim().max(200).default(""),
   department: z.string().trim().max(200).default(""),
   totalQty: z.number().int().min(0).max(1_000_000).default(0),
   availableQty: z.number().int().min(0).max(1_000_000).default(0),
   minStock: z.number().int().min(0).max(1_000_000).default(0),
   maxStock: z.number().int().min(0).max(1_000_000).default(0),
   unit: z.string().trim().min(1).max(20).default("un"),
+  status: z.string().trim().max(20).default("ativo"),
 });
 
 interface Props {
@@ -36,7 +38,8 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
       Nome: p.name,
       Categoria: p.category,
       Armazém: p.location || "",
-      Departamento: "",
+      Localização: p.locationId || "",
+      Departamento: p.departmentId || "",
       "Qtd. Total": p.totalQty,
       "Qtd. Disponível": p.availableQty,
       "Stock Mín.": p.minStock,
@@ -82,12 +85,14 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
             name: row["Nome"] != null ? String(row["Nome"]) : "",
             category: row["Categoria"] != null ? String(row["Categoria"]) : "",
             warehouse: row["Armazém"] != null ? String(row["Armazém"]) : "",
+            location: row["Localização"] != null ? String(row["Localização"]) : "",
             department: row["Departamento"] != null ? String(row["Departamento"]) : "",
             totalQty: Number(row["Qtd. Total"]) || 0,
             availableQty: Number(row["Qtd. Disponível"]) || 0,
             minStock: Number(row["Stock Mín."]) || 0,
             maxStock: Number(row["Stock Máx."]) || 0,
             unit: row["Unidade"] != null ? String(row["Unidade"]) : "un",
+            status: row["Estado"] != null ? String(row["Estado"]) : "ativo",
           });
 
           if (parsed.success) {
@@ -98,14 +103,14 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
               category: parsed.data.category,
               location: parsed.data.warehouse,
               warehouseId: "",
-              locationId: "",
+              locationId: parsed.data.location,
               departmentId: "",
               totalQty: parsed.data.totalQty,
               availableQty: parsed.data.availableQty,
               minStock: parsed.data.minStock,
               maxStock: parsed.data.maxStock,
               unit: parsed.data.unit,
-              status: "ativo" as const,
+              status: (parsed.data.status as "ativo" | "inativo") || "ativo",
             });
           } else {
             skipped++;
