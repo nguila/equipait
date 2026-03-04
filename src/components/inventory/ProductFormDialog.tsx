@@ -25,11 +25,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
     warehouseId: editItem?.warehouseId || "",
     locationId: editItem?.locationId || "",
     departmentId: editItem?.departmentId || "",
-    totalQty: editItem?.totalQty.toString() || "",
-    availableQty: editItem?.availableQty.toString() || "",
-    minStock: editItem?.minStock.toString() || "",
-    maxStock: editItem?.maxStock.toString() || "",
-    unit: editItem?.unit || "un",
+    userName: editItem?.userName || "",
   });
 
   const categories = propCategories || ["Equipamento Informático", "Software", "Infraestrutura", "Equipamento Industrial", "Audiovisual", "Material de Escritório", "Outro"];
@@ -52,11 +48,8 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       warehouseId: form.warehouseId,
       locationId: form.locationId,
       departmentId: form.departmentId,
-      totalQty: Number(form.totalQty) || 0,
-      availableQty: Number(form.availableQty) || 0,
-      minStock: Number(form.minStock) || 0,
-      maxStock: Number(form.maxStock) || 0,
-      unit: form.unit,
+      userId: editItem?.userId || "",
+      userName: form.userName,
       status: editItem?.status || "ativo",
     };
     if (editItem && onEdit) {
@@ -67,7 +60,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       toast.success("Produto adicionado com sucesso.");
     }
     setOpen(false);
-    setForm({ name: "", code: "", category: "", warehouseId: "", locationId: "", departmentId: "", totalQty: "", availableQty: "", minStock: "", maxStock: "", unit: "un" });
+    setForm({ name: "", code: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
   };
 
   return (
@@ -131,34 +124,9 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
               <SelectContent>{filteredLocations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label>Qtd. Total</Label>
-            <Input type="number" value={form.totalQty} onChange={e => setForm(f => ({ ...f, totalQty: e.target.value }))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Qtd. Disponível</Label>
-            <Input type="number" value={form.availableQty} onChange={e => setForm(f => ({ ...f, availableQty: e.target.value }))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Stock Mínimo</Label>
-            <Input type="number" value={form.minStock} onChange={e => setForm(f => ({ ...f, minStock: e.target.value }))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Stock Máximo</Label>
-            <Input type="number" value={form.maxStock} onChange={e => setForm(f => ({ ...f, maxStock: e.target.value }))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Unidade</Label>
-            <Select value={form.unit} onValueChange={v => setForm(f => ({ ...f, unit: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="un">Unidade</SelectItem>
-                <SelectItem value="kit">Kit</SelectItem>
-                <SelectItem value="licença">Licença</SelectItem>
-                <SelectItem value="cx">Caixa</SelectItem>
-                <SelectItem value="kg">Kg</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="col-span-2 space-y-1.5">
+            <Label>Utilizador</Label>
+            <Input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} placeholder="Nome do utilizador responsável" />
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
