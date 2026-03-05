@@ -620,7 +620,89 @@ const InventoryPage = () => {
           </AlertDialog>
         </TabsContent>
 
-        {/* NOVO PEDIDO */}
+        {/* LOCALIZAÇÕES */}
+        <TabsContent value="locations" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Localizações</h2>
+              <p className="text-sm text-muted-foreground">Gerir localizações associadas aos armazéns</p>
+            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => { setLocForm({ name: "", warehouseId: warehouses[0]?.id || "" }); setLocDialogOpen(true); }}>
+              <Plus className="h-4 w-4" /> Nova Localização
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {locations.map((loc) => {
+              const wh = warehouses.find(w => w.id === loc.warehouseId);
+              return (
+                <Card key={loc.id} className="hover-lift">
+                  <CardContent className="pt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                        <MapPin className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-card-foreground">{loc.name}</p>
+                        <p className="text-xs text-muted-foreground">{wh?.name || "—"}{loc.zone ? ` · ${loc.zone}` : ""}</p>
+                      </div>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => setDeleteLocId(loc.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {locations.length === 0 && (
+              <p className="text-sm text-muted-foreground col-span-full text-center py-8">Nenhuma localização definida</p>
+            )}
+          </div>
+
+          <Dialog open={locDialogOpen} onOpenChange={setLocDialogOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader><DialogTitle>Nova Localização</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Nome *</Label>
+                  <Input value={locForm.name} onChange={e => setLocForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome da localização" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Armazém</Label>
+                  <Select value={locForm.warehouseId} onValueChange={v => setLocForm(f => ({ ...f, warehouseId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar armazém" /></SelectTrigger>
+                    <SelectContent>
+                      {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={() => {
+                    if (!locForm.name.trim()) { toast.error("Preencha o nome."); return; }
+                    setLocations(prev => [...prev, { id: `loc_${Date.now()}`, name: locForm.name, warehouseId: locForm.warehouseId, zone: "", capacity: 0, currentOccupancy: 0 }]);
+                    setLocDialogOpen(false);
+                    setLocForm({ name: "", warehouseId: "" });
+                    toast.success("Localização criada.");
+                  }}>Criar</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog open={!!deleteLocId} onOpenChange={() => setDeleteLocId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar Localização?</AlertDialogTitle>
+                <AlertDialogDescription>Esta ação não pode ser revertida.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex justify-end gap-2">
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { if (deleteLocId) { setLocations(prev => prev.filter(l => l.id !== deleteLocId)); setDeleteLocId(null); toast.success("Localização eliminada."); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TabsContent>
+
         <TabsContent value="requests" className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">Crie novos pedidos de material com todos os detalhes necessários.</p>
