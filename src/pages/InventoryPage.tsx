@@ -257,6 +257,7 @@ const InventoryPage = () => {
           <TabsTrigger value="categories" className="gap-1.5 text-xs"><FolderOpen className="h-4 w-4" />Categorias</TabsTrigger>
           <TabsTrigger value="departments" className="gap-1.5 text-xs"><Building2 className="h-4 w-4" />Departamentos</TabsTrigger>
           <TabsTrigger value="warehouses" className="gap-1.5 text-xs"><MapPin className="h-4 w-4" />Armazéns</TabsTrigger>
+          <TabsTrigger value="locations" className="gap-1.5 text-xs"><MapPin className="h-4 w-4" />Localizações</TabsTrigger>
           <TabsTrigger value="requests" className="gap-1.5 text-xs"><ClipboardList className="h-4 w-4" />Pedidos</TabsTrigger>
           <TabsTrigger value="orders" className="gap-1.5 text-xs"><Box className="h-4 w-4" />Gestão Pedidos</TabsTrigger>
         </TabsList>
