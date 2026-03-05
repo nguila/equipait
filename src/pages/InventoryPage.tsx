@@ -290,6 +290,7 @@ const InventoryPage = () => {
                 columns={[
                   { key: "code", label: "Código" },
                   { key: "name", label: "Nome" },
+                  { key: "serialNumber", label: "Nº Série" },
                   { key: "category", label: "Categoria" },
                   { key: "warehouseName", label: "Armazém" },
                   { key: "departmentName", label: "Departamento" },
