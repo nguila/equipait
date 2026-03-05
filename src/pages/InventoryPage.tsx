@@ -54,7 +54,7 @@ const InventoryPage = () => {
   const [loading, setLoading] = useState(false);
 
   const [locDialogOpen, setLocDialogOpen] = useState(false);
-  const [locForm, setLocForm] = useState({ name: "", warehouseId: "" });
+  const [locForm, setLocForm] = useState({ name: "" });
   const [deleteLocId, setDeleteLocId] = useState<string | null>(null);
 
   const fetchData = async () => {
