@@ -44,6 +44,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       id: editItem?.id || `i${Date.now()}`,
       code: form.code || "AUTO",
       name: form.name,
+      serialNumber: form.serialNumber || undefined,
       category: form.category,
       location: loc?.name || wh?.name || "",
       warehouseId: form.warehouseId,
