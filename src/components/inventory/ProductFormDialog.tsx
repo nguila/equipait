@@ -62,7 +62,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       toast.success("Produto adicionado com sucesso.");
     }
     setOpen(false);
-    setForm({ name: "", code: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
+    setForm({ name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
   };
 
   return (
