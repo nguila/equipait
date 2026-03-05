@@ -78,7 +78,7 @@ const quickLinks = [
 
 const Dashboard = () => {
   const { hasAccess } = useUserRole();
-  const [stats, setStats] = useState<TicketStats>({ total: 0, open: 0, inProgress: 0, resolved: 0, critical: 0 });
+  const [stats, setStats] = useState<TicketStats>({ total: 0, open: 0, inProgress: 0, resolved: 0, critical: 0, resolutionRate: 0, avgResponseHours: 0 });
   const [allTickets, setAllTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
