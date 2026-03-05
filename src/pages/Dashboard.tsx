@@ -225,7 +225,25 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Recent Tickets with Search & Filters */}
+      {/* Service Metrics */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.resolutionRate}%</p>
+          <p className="text-xs text-muted-foreground mt-1">Taxa de Resolução</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.avgResponseHours > 0 ? `${stats.avgResponseHours}h` : "—"}</p>
+          <p className="text-xs text-muted-foreground mt-1">Tempo Médio Resposta</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.total}</p>
+          <p className="text-xs text-muted-foreground mt-1">Total de Tickets</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.open + stats.inProgress}</p>
+          <p className="text-xs text-muted-foreground mt-1">Tickets em Aberto</p>
+        </div>
+      </div>
       <Card className="border-border">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
