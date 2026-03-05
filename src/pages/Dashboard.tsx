@@ -88,12 +88,29 @@ const Dashboard = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
 
   const processTickets = useCallback((tickets: any[]) => {
+    const resolved = tickets.filter((t) => t.status === "resolvido" || t.status === "concluido").length;
+    const resolutionRate = tickets.length > 0 ? Math.round((resolved / tickets.length) * 100 * 10) / 10 : 0;
+
+    // Calculate avg response time in hours from created_at to updated_at for resolved tickets
+    const resolvedTickets = tickets.filter((t) => (t.status === "resolvido" || t.status === "concluido") && t.created_at && t.updated_at);
+    let avgResponseHours = 0;
+    if (resolvedTickets.length > 0) {
+      const totalHours = resolvedTickets.reduce((sum, t) => {
+        const created = new Date(t.created_at).getTime();
+        const updated = new Date(t.updated_at).getTime();
+        return sum + (updated - created) / (1000 * 60 * 60);
+      }, 0);
+      avgResponseHours = Math.round((totalHours / resolvedTickets.length) * 10) / 10;
+    }
+
     setStats({
       total: tickets.length,
       open: tickets.filter((t) => t.status === "pendente").length,
       inProgress: tickets.filter((t) => t.status === "em_tratamento").length,
-      resolved: tickets.filter((t) => t.status === "resolvido" || t.status === "concluido").length,
+      resolved,
       critical: tickets.filter((t) => t.priority === "critical" || t.priority === "high").length,
+      resolutionRate,
+      avgResponseHours,
     });
     setAllTickets(tickets);
   }, []);
