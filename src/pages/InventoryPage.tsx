@@ -308,6 +308,7 @@ const InventoryPage = () => {
                       id: `imp_${Date.now()}_${idx}`,
                       code: String(row.code || row["Código"] || ""),
                       name: String(row.name || row["Nome"] || ""),
+                      serialNumber: String(row.serialNumber || row["Nº Série"] || ""),
                       category: String(row.category || row["Categoria"] || ""),
                       location: whName,
                       warehouseId: wh?.id || "",
