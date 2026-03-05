@@ -85,6 +85,7 @@ export interface InventoryItem {
   id: string;
   code: string;
   name: string;
+  serialNumber?: string;
   category: string;
   location: string;
   warehouseId: string;

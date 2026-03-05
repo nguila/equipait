@@ -21,6 +21,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
   const [form, setForm] = useState({
     name: editItem?.name || "",
     code: editItem?.code || "",
+    serialNumber: editItem?.serialNumber || "",
     category: editItem?.category || "",
     warehouseId: editItem?.warehouseId || "",
     locationId: editItem?.locationId || "",
@@ -43,6 +44,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       id: editItem?.id || `i${Date.now()}`,
       code: form.code || "AUTO",
       name: form.name,
+      serialNumber: form.serialNumber || undefined,
       category: form.category,
       location: loc?.name || wh?.name || "",
       warehouseId: form.warehouseId,
@@ -60,7 +62,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       toast.success("Produto adicionado com sucesso.");
     }
     setOpen(false);
-    setForm({ name: "", code: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
+    setForm({ name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
   };
 
   return (
@@ -96,6 +98,10 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
               <p className="text-xs text-muted-foreground italic">O código será atribuído automaticamente (INV-XXX)</p>
             </div>
           )}
+          <div className="col-span-2 space-y-1.5">
+            <Label>Nº de Série</Label>
+            <Input value={form.serialNumber} onChange={e => setForm(f => ({ ...f, serialNumber: e.target.value }))} placeholder="Número de série do produto" />
+          </div>
           <div className="space-y-1.5">
             <Label>Categoria *</Label>
             <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>

@@ -185,12 +185,12 @@ const InventoryPage = () => {
 
   const downloadTemplate = () => {
     const templateData = [
-      { "Código": "INV-001", "Nome": "Exemplo Produto", "Categoria": "Informática", "Armazém": "Armazém Principal", "Localização": "Sala 1", "Departamento": "TI", "Utilizador": "João Silva", "Estado": "ativo" },
-      { "Código": "INV-002", "Nome": "", "Categoria": "", "Armazém": "", "Localização": "", "Departamento": "", "Utilizador": "", "Estado": "ativo" },
+      { "Código": "INV-001", "Nome": "Exemplo Produto", "Nº Série": "SN-12345", "Categoria": "Informática", "Armazém": "Armazém Principal", "Localização": "Sala 1", "Departamento": "TI", "Utilizador": "João Silva", "Estado": "ativo" },
+      { "Código": "INV-002", "Nome": "", "Nº Série": "", "Categoria": "", "Armazém": "", "Localização": "", "Departamento": "", "Utilizador": "", "Estado": "ativo" },
     ];
     const ws = XLSX.utils.json_to_sheet(templateData);
     ws["!cols"] = [
-      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 10 },
+      { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 10 },
     ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template Inventário");
@@ -290,6 +290,7 @@ const InventoryPage = () => {
                 columns={[
                   { key: "code", label: "Código" },
                   { key: "name", label: "Nome" },
+                  { key: "serialNumber", label: "Nº Série" },
                   { key: "category", label: "Categoria" },
                   { key: "warehouseName", label: "Armazém" },
                   { key: "departmentName", label: "Departamento" },
@@ -307,6 +308,7 @@ const InventoryPage = () => {
                       id: `imp_${Date.now()}_${idx}`,
                       code: String(row.code || row["Código"] || ""),
                       name: String(row.name || row["Nome"] || ""),
+                      serialNumber: String(row.serialNumber || row["Nº Série"] || ""),
                       category: String(row.category || row["Categoria"] || ""),
                       location: whName,
                       warehouseId: wh?.id || "",
@@ -333,6 +335,7 @@ const InventoryPage = () => {
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Código</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Item</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nº Série</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Categoria</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Localização</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Departamento</th>
@@ -343,7 +346,7 @@ const InventoryPage = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
+                  <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
                 ) : filtered.map((item) => {
                   const dept = departments.find((d) => d.id === item.departmentId) || mockDepartments.find(d => d.id === item.departmentId);
                   return (
@@ -358,6 +361,9 @@ const InventoryPage = () => {
                           </div>
                           <span className="text-sm font-medium text-card-foreground">{item.name}</span>
                         </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-sm text-muted-foreground font-mono">{item.serialNumber || "—"}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <Badge variant="secondary" className="text-xs">{item.category}</Badge>
