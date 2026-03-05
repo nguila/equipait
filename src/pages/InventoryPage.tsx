@@ -362,6 +362,9 @@ const InventoryPage = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
+                        <span className="text-sm text-muted-foreground font-mono">{item.serialNumber || "—"}</span>
+                      </td>
+                      <td className="px-5 py-3.5">
                         <Badge variant="secondary" className="text-xs">{item.category}</Badge>
                       </td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{item.location}</td>
