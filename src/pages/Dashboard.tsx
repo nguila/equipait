@@ -119,7 +119,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
       const { data: tickets } = await supabase
         .from("tickets")
-        .select("id, title, status, priority, created_at, ticket_number")
+        .select("id, title, status, priority, created_at, updated_at, ticket_number")
         .order("created_at", { ascending: false })
         .limit(50);
 
