@@ -54,7 +54,7 @@ const InventoryPage = () => {
   const [loading, setLoading] = useState(false);
 
   const [locDialogOpen, setLocDialogOpen] = useState(false);
-  const [locForm, setLocForm] = useState({ name: "", warehouseId: "" });
+  const [locForm, setLocForm] = useState({ name: "" });
   const [deleteLocId, setDeleteLocId] = useState<string | null>(null);
 
   const fetchData = async () => {
@@ -625,34 +625,28 @@ const InventoryPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Localizações</h2>
-              <p className="text-sm text-muted-foreground">Gerir localizações associadas aos armazéns</p>
+              <p className="text-sm text-muted-foreground">Gerir localizações do inventário</p>
             </div>
-            <Button size="sm" className="gap-1.5" onClick={() => { setLocForm({ name: "", warehouseId: warehouses[0]?.id || "" }); setLocDialogOpen(true); }}>
+            <Button size="sm" className="gap-1.5" onClick={() => { setLocForm({ name: "" }); setLocDialogOpen(true); }}>
               <Plus className="h-4 w-4" /> Nova Localização
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {locations.map((loc) => {
-              const wh = warehouses.find(w => w.id === loc.warehouseId);
-              return (
+            {locations.map((loc) => (
                 <Card key={loc.id} className="hover-lift">
                   <CardContent className="pt-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                         <MapPin className="h-4 w-4 text-primary" />
                       </div>
-                      <div>
-                        <p className="font-medium text-card-foreground">{loc.name}</p>
-                        <p className="text-xs text-muted-foreground">{wh?.name || "—"}{loc.zone ? ` · ${loc.zone}` : ""}</p>
-                      </div>
+                      <p className="font-medium text-card-foreground">{loc.name}</p>
                     </div>
                     <Button size="icon" variant="ghost" onClick={() => setDeleteLocId(loc.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </CardContent>
                 </Card>
-              );
-            })}
+            ))}
             {locations.length === 0 && (
               <p className="text-sm text-muted-foreground col-span-full text-center py-8">Nenhuma localização definida</p>
             )}
@@ -666,22 +660,13 @@ const InventoryPage = () => {
                   <Label>Nome *</Label>
                   <Input value={locForm.name} onChange={e => setLocForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome da localização" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Armazém</Label>
-                  <Select value={locForm.warehouseId} onValueChange={v => setLocForm(f => ({ ...f, warehouseId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar armazém" /></SelectTrigger>
-                    <SelectContent>
-                      {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button>
                   <Button onClick={() => {
                     if (!locForm.name.trim()) { toast.error("Preencha o nome."); return; }
-                    setLocations(prev => [...prev, { id: `loc_${Date.now()}`, name: locForm.name, warehouseId: locForm.warehouseId, zone: "", capacity: 0, currentOccupancy: 0 }]);
+                    setLocations(prev => [...prev, { id: `loc_${Date.now()}`, name: locForm.name, warehouseId: "", zone: "", capacity: 0, currentOccupancy: 0 }]);
                     setLocDialogOpen(false);
-                    setLocForm({ name: "", warehouseId: "" });
+                    setLocForm({ name: "" });
                     toast.success("Localização criada.");
                   }}>Criar</Button>
                 </div>
