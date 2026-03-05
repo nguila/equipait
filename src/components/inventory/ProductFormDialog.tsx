@@ -21,6 +21,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
   const [form, setForm] = useState({
     name: editItem?.name || "",
     code: editItem?.code || "",
+    serialNumber: editItem?.serialNumber || "",
     category: editItem?.category || "",
     warehouseId: editItem?.warehouseId || "",
     locationId: editItem?.locationId || "",
