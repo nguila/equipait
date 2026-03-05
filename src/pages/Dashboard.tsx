@@ -29,6 +29,8 @@ interface TicketStats {
   inProgress: number;
   resolved: number;
   critical: number;
+  resolutionRate: number;
+  avgResponseHours: number;
 }
 
 const quickLinks = [
