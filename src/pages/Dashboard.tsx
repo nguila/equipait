@@ -29,6 +29,8 @@ interface TicketStats {
   inProgress: number;
   resolved: number;
   critical: number;
+  resolutionRate: number;
+  avgResponseHours: number;
 }
 
 const quickLinks = [
@@ -76,7 +78,7 @@ const quickLinks = [
 
 const Dashboard = () => {
   const { hasAccess } = useUserRole();
-  const [stats, setStats] = useState<TicketStats>({ total: 0, open: 0, inProgress: 0, resolved: 0, critical: 0 });
+  const [stats, setStats] = useState<TicketStats>({ total: 0, open: 0, inProgress: 0, resolved: 0, critical: 0, resolutionRate: 0, avgResponseHours: 0 });
   const [allTickets, setAllTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,12 +88,29 @@ const Dashboard = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
 
   const processTickets = useCallback((tickets: any[]) => {
+    const resolved = tickets.filter((t) => t.status === "resolvido" || t.status === "concluido").length;
+    const resolutionRate = tickets.length > 0 ? Math.round((resolved / tickets.length) * 100 * 10) / 10 : 0;
+
+    // Calculate avg response time in hours from created_at to updated_at for resolved tickets
+    const resolvedTickets = tickets.filter((t) => (t.status === "resolvido" || t.status === "concluido") && t.created_at && t.updated_at);
+    let avgResponseHours = 0;
+    if (resolvedTickets.length > 0) {
+      const totalHours = resolvedTickets.reduce((sum, t) => {
+        const created = new Date(t.created_at).getTime();
+        const updated = new Date(t.updated_at).getTime();
+        return sum + (updated - created) / (1000 * 60 * 60);
+      }, 0);
+      avgResponseHours = Math.round((totalHours / resolvedTickets.length) * 10) / 10;
+    }
+
     setStats({
       total: tickets.length,
       open: tickets.filter((t) => t.status === "pendente").length,
       inProgress: tickets.filter((t) => t.status === "em_tratamento").length,
-      resolved: tickets.filter((t) => t.status === "resolvido" || t.status === "concluido").length,
+      resolved,
       critical: tickets.filter((t) => t.priority === "critical" || t.priority === "high").length,
+      resolutionRate,
+      avgResponseHours,
     });
     setAllTickets(tickets);
   }, []);
@@ -100,7 +119,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
       const { data: tickets } = await supabase
         .from("tickets")
-        .select("id, title, status, priority, created_at, ticket_number")
+        .select("id, title, status, priority, created_at, updated_at, ticket_number")
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -206,7 +225,25 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Recent Tickets with Search & Filters */}
+      {/* Service Metrics */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.resolutionRate}%</p>
+          <p className="text-xs text-muted-foreground mt-1">Taxa de Resolução</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.avgResponseHours > 0 ? `${stats.avgResponseHours}h` : "—"}</p>
+          <p className="text-xs text-muted-foreground mt-1">Tempo Médio Resposta</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.total}</p>
+          <p className="text-xs text-muted-foreground mt-1">Total de Tickets</p>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-2xl font-bold text-primary">{stats.open + stats.inProgress}</p>
+          <p className="text-xs text-muted-foreground mt-1">Tickets em Aberto</p>
+        </div>
+      </div>
       <Card className="border-border">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
