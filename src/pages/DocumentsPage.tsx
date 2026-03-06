@@ -71,6 +71,9 @@ const DocumentsPage = () => {
   const [editingDoc, setEditingDoc] = useState<Doc | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [technicianFilter, setTechnicianFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
   const [customFields, setCustomFields] = useState<{ name: string; value: string }[]>([]);
