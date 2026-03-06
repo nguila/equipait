@@ -330,7 +330,7 @@ const AdminPage = () => {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" title="Editar" onClick={() => { setEditUser(u); setEditForm({ email: u.email || "", full_name: u.full_name || "" }); }}>
+                        <Button variant="ghost" size="icon" title="Editar" onClick={() => { setEditUser(u); setEditForm({ email: u.email || "", full_name: u.full_name || "", department_id: u.department_id || "", new_password: "" }); }}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" title="Redefinir senha" onClick={() => { setResetUser(u); setNewPassword(""); }}>
