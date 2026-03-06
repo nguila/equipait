@@ -279,11 +279,6 @@ const DocumentsPage = () => {
     fetchData();
   };
 
-  const getTechnicianName = (techId: string | null) => {
-    if (!techId) return "—";
-    const p = profiles.find((pr) => pr.user_id === techId);
-    return p?.full_name || p?.email || "—";
-  };
 
   const exportColumns = [
     { key: "title", label: "Título" },
