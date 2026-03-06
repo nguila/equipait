@@ -779,6 +779,22 @@ const AdminPage = () => {
               <Label>Email</Label>
               <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
             </div>
+            <div className="space-y-1.5">
+              <Label>Departamento</Label>
+              <Select value={editForm.department_id} onValueChange={(v) => setEditForm({ ...editForm, department_id: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Sem departamento" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem departamento</SelectItem>
+                  {departments.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nova Senha (deixe vazio para manter)</Label>
+              <Input type="password" value={editForm.new_password} onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })} placeholder="••••••••" minLength={6} />
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
               <Button type="submit" disabled={saving}>{saving ? "A guardar..." : "Guardar"}</Button>
