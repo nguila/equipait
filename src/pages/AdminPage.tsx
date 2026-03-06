@@ -107,11 +107,38 @@ const AdminPage = () => {
 
   const callAdmin = async (body: any) => {
     const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error("Sessão expirada. Faça login novamente.");
+    }
+
     const res = await supabase.functions.invoke("admin-user-management", {
       body,
-      headers: { Authorization: `Bearer ${session?.access_token}` },
+      headers: { Authorization: `Bearer ${session.access_token}` },
     });
-    if (res.error) throw new Error(res.error.message);
+
+    if (res.error) {
+      const context = (res.error as any).context;
+      let message = "Erro ao executar operação administrativa";
+
+      if (context instanceof Response) {
+        try {
+          const payload = await context.json();
+          message = payload?.error || payload?.message || message;
+        } catch {
+          try {
+            message = await context.text();
+          } catch {
+            // ignore parse error
+          }
+        }
+      } else if (res.error.message) {
+        message = res.error.message;
+      }
+
+      throw new Error(message);
+    }
+
     if (res.data?.error) throw new Error(res.data.error);
     return res.data;
   };
