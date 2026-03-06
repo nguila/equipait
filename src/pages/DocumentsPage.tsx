@@ -71,6 +71,9 @@ const DocumentsPage = () => {
   const [editingDoc, setEditingDoc] = useState<Doc | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [technicianFilter, setTechnicianFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
   const [customFields, setCustomFields] = useState<{ name: string; value: string }[]>([]);
@@ -102,7 +105,23 @@ const DocumentsPage = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  const filtered = docs.filter((d) => typeFilter === "all" || d.type === typeFilter);
+  const getTechnicianName = (techId: string | null) => {
+    if (!techId) return "—";
+    const p = profiles.find((pr) => pr.user_id === techId);
+    return p?.full_name || p?.email || "—";
+  };
+
+  const filtered = docs.filter((d) => {
+    if (typeFilter !== "all" && d.type !== typeFilter) return false;
+    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    if (technicianFilter !== "all" && d.technician_id !== technicianFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const techName = getTechnicianName(d.technician_id).toLowerCase();
+      if (!d.title.toLowerCase().includes(q) && !(d.description || "").toLowerCase().includes(q) && !techName.includes(q) && !(d.tags || []).some(t => t.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
 
   const resetForm = () => {
     setForm({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
@@ -260,11 +279,6 @@ const DocumentsPage = () => {
     fetchData();
   };
 
-  const getTechnicianName = (techId: string | null) => {
-    if (!techId) return "—";
-    const p = profiles.find((pr) => pr.user_id === techId);
-    return p?.full_name || p?.email || "—";
-  };
 
   const exportColumns = [
     { key: "title", label: "Título" },
@@ -306,15 +320,41 @@ const DocumentsPage = () => {
         </TabsList>
 
         <TabsContent value="documentos" className="space-y-4 mt-4">
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-44 h-9 text-sm">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              {docTypes.map((t) => <SelectItem key={t.id} value={t.name.toLowerCase()}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
+              placeholder="Pesquisar documentos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64 h-9 text-sm"
+            />
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                {docTypes.map((t) => <SelectItem key={t.id} value={t.name.toLowerCase()}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os estados</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={technicianFilter} onValueChange={setTechnicianFilter}>
+              <SelectTrigger className="w-48 h-9 text-sm">
+                <SelectValue placeholder="Técnico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os técnicos</SelectItem>
+                {profiles.map((p) => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.email || p.user_id}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
           {filtered.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhum documento encontrado</CardContent></Card>
