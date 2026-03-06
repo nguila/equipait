@@ -60,7 +60,7 @@ const AdminPage = () => {
 
   // Edit user
   const [editUser, setEditUser] = useState<UserRow | null>(null);
-  const [editForm, setEditForm] = useState({ email: "", full_name: "" });
+  const [editForm, setEditForm] = useState({ email: "", full_name: "", department_id: "", new_password: "" });
   const [saving, setSaving] = useState(false);
 
   // Reset password
@@ -138,7 +138,13 @@ const AdminPage = () => {
     if (!editUser) return;
     setSaving(true);
     try {
-      await callAdmin({ action: "update_user", user_id: editUser.user_id, ...editForm });
+      const payload: any = { action: "update_user", user_id: editUser.user_id };
+      if (editForm.email) payload.email = editForm.email;
+      if (editForm.full_name) payload.full_name = editForm.full_name;
+      payload.department_id = editForm.department_id || null;
+      if (editForm.new_password) payload.new_password = editForm.new_password;
+      
+      await callAdmin(payload);
       toast.success("Utilizador atualizado");
       setEditUser(null);
       fetchUsers();
@@ -330,7 +336,7 @@ const AdminPage = () => {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" title="Editar" onClick={() => { setEditUser(u); setEditForm({ email: u.email || "", full_name: u.full_name || "" }); }}>
+                        <Button variant="ghost" size="icon" title="Editar" onClick={() => { setEditUser(u); setEditForm({ email: u.email || "", full_name: u.full_name || "", department_id: u.department_id || "", new_password: "" }); }}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" title="Redefinir senha" onClick={() => { setResetUser(u); setNewPassword(""); }}>
@@ -778,6 +784,22 @@ const AdminPage = () => {
             <div className="space-y-1.5">
               <Label>Email</Label>
               <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Departamento</Label>
+              <Select value={editForm.department_id} onValueChange={(v) => setEditForm({ ...editForm, department_id: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Sem departamento" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem departamento</SelectItem>
+                  {departments.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nova Senha (deixe vazio para manter)</Label>
+              <Input type="password" value={editForm.new_password} onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })} placeholder="••••••••" minLength={6} />
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>

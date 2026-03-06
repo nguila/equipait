@@ -62,26 +62,34 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update_user") {
-      const { user_id, email, full_name } = params;
-      const updateData: any = {};
-      if (email) updateData.email = email;
-      if (full_name) updateData.user_metadata = { full_name };
+      const { user_id, email, full_name, department_id, new_password } = params;
+      
+      // Update auth user (email and/or password)
+      const authUpdate: any = {};
+      if (email) authUpdate.email = email;
+      if (full_name) authUpdate.user_metadata = { full_name };
+      if (new_password) authUpdate.password = new_password;
 
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(
-        user_id,
-        updateData
-      );
-      if (error) throw error;
+      if (Object.keys(authUpdate).length > 0) {
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(
+          user_id,
+          authUpdate
+        );
+        if (error) throw error;
+      }
 
-      // Also update profile
+      // Update profile
       const profileUpdate: any = {};
       if (email) profileUpdate.email = email;
       if (full_name) profileUpdate.full_name = full_name;
+      if (department_id !== undefined) profileUpdate.department_id = department_id || null;
+      
       if (Object.keys(profileUpdate).length > 0) {
-        await supabaseAdmin
+        const { error } = await supabaseAdmin
           .from("profiles")
           .update(profileUpdate)
           .eq("user_id", user_id);
+        if (error) throw error;
       }
 
       return new Response(JSON.stringify({ success: true }), {
@@ -91,6 +99,12 @@ Deno.serve(async (req) => {
 
     if (action === "delete_user") {
       const { user_id } = params;
+      
+      // Delete profile first (cascade should handle related data)
+      await supabaseAdmin.from("user_permissions").delete().eq("user_id", user_id);
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", user_id);
+      await supabaseAdmin.from("profiles").delete().eq("user_id", user_id);
+      
       const { error } = await supabaseAdmin.auth.admin.deleteUser(user_id);
       if (error) throw error;
 
