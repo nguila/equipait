@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { inventoryItems as initialItems, departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
+import { departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
