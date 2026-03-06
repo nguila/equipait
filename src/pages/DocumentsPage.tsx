@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileText, Plus, Upload, Paperclip, Download, Loader2, Trash2, BookOpen, Tags } from "lucide-react";
+import { FileText, Plus, Upload, Paperclip, Download, Loader2, Trash2, BookOpen, Tags, Pencil } from "lucide-react";
 import ImportExportBar from "@/components/shared/ImportExportBar";
 
 interface Doc {
@@ -24,6 +24,7 @@ interface Doc {
   tags: string[];
   created_at: string;
   knowledge_area_id: string | null;
+  technician_id: string | null;
 }
 
 interface Attachment {
@@ -46,6 +47,12 @@ interface KnowledgeArea {
   description: string | null;
 }
 
+interface Profile {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   draft: "Rascunho", pending: "Pendente", approved: "Aprovado", archived: "Arquivado",
 };
@@ -58,12 +65,14 @@ const DocumentsPage = () => {
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [docTypes, setDocTypes] = useState<DocType[]>([]);
   const [knowledgeAreas, setKnowledgeAreas] = useState<KnowledgeArea[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<Doc | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [typeFilter, setTypeFilter] = useState("all");
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "" });
+  const [form, setForm] = useState({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
   const [customFields, setCustomFields] = useState<{ name: string; value: string }[]>([]);
 
   // Type/Area management
@@ -74,18 +83,20 @@ const DocumentsPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [docsRes, attsRes, deptsRes, typesRes, areasRes] = await Promise.all([
+    const [docsRes, attsRes, deptsRes, typesRes, areasRes, profilesRes] = await Promise.all([
       supabase.from("documents").select("*").order("created_at", { ascending: false }),
       supabase.from("attachments").select("id, file_name, file_path, file_size, entity_id").eq("entity_type", "document"),
       supabase.from("departments").select("id, name"),
       supabase.from("document_types").select("*").order("name"),
       supabase.from("knowledge_areas").select("*").order("name"),
+      supabase.from("profiles").select("user_id, full_name, email"),
     ]);
     if (docsRes.data) setDocs(docsRes.data as Doc[]);
     if (attsRes.data) setAttachments(attsRes.data);
     if (deptsRes.data) setDepartments(deptsRes.data);
     if (typesRes.data) setDocTypes(typesRes.data);
     if (areasRes.data) setKnowledgeAreas(areasRes.data);
+    if (profilesRes.data) setProfiles(profilesRes.data);
     setLoading(false);
   };
 
@@ -93,33 +104,78 @@ const DocumentsPage = () => {
 
   const filtered = docs.filter((d) => typeFilter === "all" || d.type === typeFilter);
 
+  const resetForm = () => {
+    setForm({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
+    setFiles([]);
+    setCustomFields([]);
+    setEditingDoc(null);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setFormOpen(true);
+  };
+
+  const openEdit = async (doc: Doc) => {
+    setEditingDoc(doc);
+    setForm({
+      title: doc.title,
+      description: doc.description || "",
+      type: doc.type,
+      department_id: "",
+      tags: (doc.tags || []).join(", "),
+      knowledge_area_id: doc.knowledge_area_id || "",
+      technician_id: doc.technician_id || "",
+      status: doc.status,
+    });
+    // Load custom fields
+    const { data } = await supabase.from("document_custom_fields").select("*").eq("document_id", doc.id);
+    setCustomFields((data || []).map((f: any) => ({ name: f.field_name, value: f.field_value || "" })));
+    setFiles([]);
+    setFormOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !form.title) return;
     setSubmitting(true);
 
     try {
-      const { data: doc, error } = await supabase
-        .from("documents")
-        .insert({
-          title: form.title,
-          description: form.description || null,
-          type: form.type || "outro",
-          department_id: form.department_id || null,
-          knowledge_area_id: form.knowledge_area_id || null,
-          created_by: user.id,
-          tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-        })
-        .select("id")
-        .single();
+      const payload = {
+        title: form.title,
+        description: form.description || null,
+        type: form.type || "outro",
+        department_id: form.department_id || null,
+        knowledge_area_id: form.knowledge_area_id || null,
+        technician_id: form.technician_id || null,
+        tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        status: form.status || "draft",
+      };
 
-      if (error) throw error;
+      let docId: string;
+
+      if (editingDoc) {
+        const { error } = await supabase.from("documents").update(payload).eq("id", editingDoc.id);
+        if (error) throw error;
+        docId = editingDoc.id;
+
+        // Update custom fields: delete old, insert new
+        await supabase.from("document_custom_fields").delete().eq("document_id", docId);
+      } else {
+        const { data: doc, error } = await supabase
+          .from("documents")
+          .insert({ ...payload, created_by: user.id })
+          .select("id")
+          .single();
+        if (error) throw error;
+        docId = doc.id;
+      }
 
       // Save custom fields
       if (customFields.length > 0) {
         const fieldsToInsert = customFields
           .filter((f) => f.name.trim())
-          .map((f) => ({ document_id: doc.id, field_name: f.name, field_value: f.value }));
+          .map((f) => ({ document_id: docId, field_name: f.name, field_value: f.value }));
         if (fieldsToInsert.length > 0) {
           await supabase.from("document_custom_fields").insert(fieldsToInsert);
         }
@@ -127,19 +183,17 @@ const DocumentsPage = () => {
 
       // Upload files
       for (const file of files) {
-        const filePath = `${user.id}/${doc.id}/${file.name}`;
+        const filePath = `${user.id}/${docId}/${file.name}`;
         const { error: uploadError } = await supabase.storage.from("attachments").upload(filePath, file);
         if (uploadError) { console.error(uploadError); continue; }
         await supabase.from("attachments").insert({
           file_name: file.name, file_path: filePath, file_size: file.size,
-          content_type: file.type, entity_type: "document", entity_id: doc.id, uploaded_by: user.id,
+          content_type: file.type, entity_type: "document", entity_id: docId, uploaded_by: user.id,
         });
       }
 
-      toast.success("Documento criado com sucesso");
-      setForm({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "" });
-      setFiles([]);
-      setCustomFields([]);
+      toast.success(editingDoc ? "Documento atualizado com sucesso" : "Documento criado com sucesso");
+      resetForm();
       setFormOpen(false);
       fetchData();
     } catch (err: any) {
@@ -194,7 +248,6 @@ const DocumentsPage = () => {
 
   const deleteDocument = async (id: string) => {
     if (!confirm("Eliminar documento?")) return;
-    // Delete attachments first
     const docAtts = attachments.filter(a => a.entity_id === id);
     for (const att of docAtts) {
       await supabase.storage.from("attachments").remove([att.file_path]);
@@ -205,6 +258,12 @@ const DocumentsPage = () => {
     if (error) { toast.error(error.message); return; }
     toast.success("Documento eliminado");
     fetchData();
+  };
+
+  const getTechnicianName = (techId: string | null) => {
+    if (!techId) return "—";
+    const p = profiles.find((pr) => pr.user_id === techId);
+    return p?.full_name || p?.email || "—";
   };
 
   const exportColumns = [
@@ -233,7 +292,7 @@ const DocumentsPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <ImportExportBar data={filtered} columns={exportColumns} moduleName="Documentos" />
-          <Button className="gap-2" onClick={() => setFormOpen(true)}>
+          <Button className="gap-2" onClick={openCreate}>
             <Plus className="h-4 w-4" /> Novo Documento
           </Button>
         </div>
@@ -267,10 +326,11 @@ const DocumentsPage = () => {
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documento</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Área</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Técnico</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</th>
                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Anexos</th>
-                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tags</th>
-                     <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tags</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -290,6 +350,7 @@ const DocumentsPage = () => {
                         </td>
                         <td className="px-5 py-3.5 text-sm text-muted-foreground capitalize">{doc.type}</td>
                         <td className="px-5 py-3.5 text-sm text-muted-foreground">{area?.name || "—"}</td>
+                        <td className="px-5 py-3.5 text-sm text-muted-foreground">{getTechnicianName(doc.technician_id)}</td>
                         <td className="px-5 py-3.5">
                           <Badge variant="secondary">{STATUS_LABELS[doc.status] || doc.status}</Badge>
                         </td>
@@ -313,9 +374,14 @@ const DocumentsPage = () => {
                           </div>
                         </td>
                         <td className="px-5 py-3.5">
-                          <Button size="icon" variant="ghost" onClick={() => deleteDocument(doc.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => openEdit(doc)}>
+                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => deleteDocument(doc.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -397,10 +463,10 @@ const DocumentsPage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Create Document Dialog */}
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+      {/* Create/Edit Document Dialog */}
+      <Dialog open={formOpen} onOpenChange={(open) => { if (!open) resetForm(); setFormOpen(open); }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Novo Documento</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingDoc ? "Editar Documento" : "Novo Documento"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Título *</Label>
@@ -420,6 +486,18 @@ const DocumentsPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1.5">
+                <Label>Estado</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Rascunho</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="approved">Aprovado</SelectItem>
+                    <SelectItem value="archived">Arquivado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Área de Conhecimento</Label>
@@ -427,6 +505,17 @@ const DocumentsPage = () => {
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   {knowledgeAreas.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Técnico que elaborou</Label>
+              <Select value={form.technician_id} onValueChange={(v) => setForm({ ...form, technician_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar técnico" /></SelectTrigger>
+                <SelectContent>
+                  {profiles.map((p) => (
+                    <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.email || p.user_id}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -470,8 +559,10 @@ const DocumentsPage = () => {
               ))}
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={submitting}>{submitting ? "A criar..." : "Criar Documento"}</Button>
+              <Button type="button" variant="outline" onClick={() => { resetForm(); setFormOpen(false); }}>Cancelar</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? (editingDoc ? "A guardar..." : "A criar...") : (editingDoc ? "Guardar Alterações" : "Criar Documento")}
+              </Button>
             </div>
           </form>
         </DialogContent>
