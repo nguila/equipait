@@ -60,7 +60,7 @@ const AdminPage = () => {
 
   // Edit user
   const [editUser, setEditUser] = useState<UserRow | null>(null);
-  const [editForm, setEditForm] = useState({ email: "", full_name: "" });
+  const [editForm, setEditForm] = useState({ email: "", full_name: "", department_id: "", new_password: "" });
   const [saving, setSaving] = useState(false);
 
   // Reset password
