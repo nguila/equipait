@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { inventoryItems as initialItems, departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
+import { departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,8 @@ interface InventoryCategory {
 }
 
 const InventoryPage = () => {
-  const [products, setProducts] = useState<InventoryItem[]>(initialItems);
+  const { user } = useAuth();
+  const [products, setProducts] = useState<InventoryItem[]>([]);
   const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
@@ -59,12 +61,29 @@ const InventoryPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [catsRes, deptsRes] = await Promise.all([
+    const [catsRes, deptsRes, itemsRes] = await Promise.all([
       supabase.from("inventory_categories").select("*").order("name"),
       supabase.from("departments").select("id, name, description").order("name"),
+      supabase.from("inventory_items").select("*").order("code"),
     ]);
     if (catsRes.data) setCategories(catsRes.data as InventoryCategory[]);
     if (deptsRes.data) setDepartments(deptsRes.data);
+    if (itemsRes.data) {
+      setProducts(itemsRes.data.map((row: any) => ({
+        id: row.id,
+        code: row.code,
+        name: row.name,
+        serialNumber: row.serial_number || undefined,
+        category: row.category,
+        location: row.location || "",
+        warehouseId: row.warehouse_id || "",
+        locationId: row.location_id || "",
+        departmentId: row.department_id || "",
+        userId: row.created_by || "",
+        userName: row.user_name || "",
+        status: row.status as "ativo" | "inativo",
+      })));
+    }
     setLoading(false);
   };
 
@@ -87,17 +106,80 @@ const InventoryPage = () => {
     return `INV-${String(max + 1).padStart(3, "0")}`;
   };
 
-  const handleAddProduct = (item: InventoryItem) => {
+  const handleAddProduct = async (item: InventoryItem) => {
     const autoCode = getNextProductCode();
-    setProducts(prev => [...prev, { ...item, code: autoCode }]);
+    if (!user) { toast.error("Necessário autenticação."); return; }
+    const { error } = await supabase.from("inventory_items").insert({
+      code: autoCode,
+      name: item.name,
+      serial_number: item.serialNumber || null,
+      category: item.category,
+      location: item.location,
+      warehouse_id: item.warehouseId,
+      location_id: item.locationId,
+      department_id: item.departmentId || null,
+      user_name: item.userName || "",
+      status: item.status || "ativo",
+      created_by: user.id,
+    });
+    if (error) { toast.error("Erro ao guardar: " + error.message); return; }
+    toast.success("Produto adicionado com sucesso.");
+    fetchData();
   };
-  const handleEditProduct = (item: InventoryItem) => setProducts(prev => prev.map(p => p.id === item.id ? item : p));
-  const handleImportProducts = (items: InventoryItem[]) => setProducts(prev => [...prev, ...items]);
-  const handleDeleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+
+  const handleEditProduct = async (item: InventoryItem) => {
+    const { error } = await supabase.from("inventory_items").update({
+      name: item.name,
+      serial_number: item.serialNumber || null,
+      category: item.category,
+      location: item.location,
+      warehouse_id: item.warehouseId,
+      location_id: item.locationId,
+      department_id: item.departmentId || null,
+      user_name: item.userName || "",
+      status: item.status,
+    }).eq("id", item.id);
+    if (error) { toast.error("Erro ao atualizar: " + error.message); return; }
+    toast.success("Produto atualizado com sucesso.");
+    fetchData();
+  };
+
+  const handleImportProducts = async (items: InventoryItem[]) => {
+    if (!user) { toast.error("Necessário autenticação."); return; }
+    let codeNum = (() => {
+      const nums = products.map(p => { const m = p.code.match(/INV-(\d+)/); return m ? parseInt(m[1], 10) : 0; });
+      return nums.length > 0 ? Math.max(...nums) : 0;
+    })();
+    const rows = items.map((item) => {
+      codeNum++;
+      return {
+        code: item.code || `INV-${String(codeNum).padStart(3, "0")}`,
+        name: item.name,
+        serial_number: item.serialNumber || null,
+        category: item.category,
+        location: item.location,
+        warehouse_id: item.warehouseId,
+        location_id: item.locationId,
+        department_id: item.departmentId || null,
+        user_name: item.userName || "",
+        status: "ativo",
+        created_by: user.id,
+      };
+    });
+    const { error } = await supabase.from("inventory_items").insert(rows);
+    if (error) { toast.error("Erro na importação: " + error.message); return; }
+    toast.success(`${rows.length} produtos importados.`);
+    fetchData();
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    const { error } = await supabase.from("inventory_items").delete().eq("id", id);
+    if (error) { toast.error("Erro ao eliminar: " + error.message); return; }
     setDeleteId(null);
     toast.success("Produto eliminado com sucesso.");
+    fetchData();
   };
+
   const handleAddRequest = (req: StockRequest) => setRequests(prev => [...prev, req]);
   const handleStatusChange = (id: string, status: StockRequest["status"]) => {
     setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
