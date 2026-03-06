@@ -105,7 +105,17 @@ const DocumentsPage = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  const filtered = docs.filter((d) => typeFilter === "all" || d.type === typeFilter);
+  const filtered = docs.filter((d) => {
+    if (typeFilter !== "all" && d.type !== typeFilter) return false;
+    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    if (technicianFilter !== "all" && d.technician_id !== technicianFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const techName = getTechnicianName(d.technician_id).toLowerCase();
+      if (!d.title.toLowerCase().includes(q) && !(d.description || "").toLowerCase().includes(q) && !techName.includes(q) && !(d.tags || []).some(t => t.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
 
   const resetForm = () => {
     setForm({ title: "", description: "", type: "", department_id: "", tags: "", knowledge_area_id: "", technician_id: "", status: "draft" });
