@@ -105,6 +105,12 @@ const DocumentsPage = () => {
 
   useEffect(() => { fetchData(); }, []);
 
+  const getTechnicianName = (techId: string | null) => {
+    if (!techId) return "—";
+    const p = profiles.find((pr) => pr.user_id === techId);
+    return p?.full_name || p?.email || "—";
+  };
+
   const filtered = docs.filter((d) => {
     if (typeFilter !== "all" && d.type !== typeFilter) return false;
     if (statusFilter !== "all" && d.status !== statusFilter) return false;
