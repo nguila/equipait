@@ -61,12 +61,29 @@ const InventoryPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [catsRes, deptsRes] = await Promise.all([
+    const [catsRes, deptsRes, itemsRes] = await Promise.all([
       supabase.from("inventory_categories").select("*").order("name"),
       supabase.from("departments").select("id, name, description").order("name"),
+      supabase.from("inventory_items").select("*").order("code"),
     ]);
     if (catsRes.data) setCategories(catsRes.data as InventoryCategory[]);
     if (deptsRes.data) setDepartments(deptsRes.data);
+    if (itemsRes.data) {
+      setProducts(itemsRes.data.map((row: any) => ({
+        id: row.id,
+        code: row.code,
+        name: row.name,
+        serialNumber: row.serial_number || undefined,
+        category: row.category,
+        location: row.location || "",
+        warehouseId: row.warehouse_id || "",
+        locationId: row.location_id || "",
+        departmentId: row.department_id || "",
+        userId: row.created_by || "",
+        userName: row.user_name || "",
+        status: row.status as "ativo" | "inativo",
+      })));
+    }
     setLoading(false);
   };
 
