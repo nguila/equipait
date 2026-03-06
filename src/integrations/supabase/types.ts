@@ -135,6 +135,7 @@ export type Database = {
           knowledge_area_id: string | null
           status: string
           tags: string[] | null
+          technician_id: string | null
           title: string
           type: string
           updated_at: string
@@ -150,6 +151,7 @@ export type Database = {
           knowledge_area_id?: string | null
           status?: string
           tags?: string[] | null
+          technician_id?: string | null
           title: string
           type?: string
           updated_at?: string
@@ -165,6 +167,7 @@ export type Database = {
           knowledge_area_id?: string | null
           status?: string
           tags?: string[] | null
+          technician_id?: string | null
           title?: string
           type?: string
           updated_at?: string
