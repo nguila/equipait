@@ -208,6 +208,65 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_items: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          created_by: string
+          department_id: string | null
+          id: string
+          location: string | null
+          location_id: string | null
+          name: string
+          serial_number: string | null
+          status: string
+          updated_at: string
+          user_name: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          category?: string
+          code: string
+          created_at?: string
+          created_by: string
+          department_id?: string | null
+          id?: string
+          location?: string | null
+          location_id?: string | null
+          name: string
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+          user_name?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          created_by?: string
+          department_id?: string | null
+          id?: string
+          location?: string | null
+          location_id?: string | null
+          name?: string
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+          user_name?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_areas: {
         Row: {
           created_at: string
