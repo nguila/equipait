@@ -19,13 +19,19 @@ const ResetPasswordPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Redirect to auth if no session (token invalid)
+  // Check for recovery type in hash fragment or search params
   useEffect(() => {
-    const type = searchParams.get("type");
-    if (type !== "recovery") {
-      navigate("/auth");
+    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?"));
+    const typeFromHash = hashParams.get("type");
+    const typeFromSearch = searchParams.get("type");
+    if (typeFromHash !== "recovery" && typeFromSearch !== "recovery") {
+      // Wait a moment for Supabase to process the token
+      const timeout = setTimeout(() => {
+        if (!user) navigate("/auth");
+      }, 2000);
+      return () => clearTimeout(timeout);
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, user]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
