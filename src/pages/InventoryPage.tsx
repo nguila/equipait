@@ -27,7 +27,8 @@ interface InventoryCategory {
 }
 
 const InventoryPage = () => {
-  const [products, setProducts] = useState<InventoryItem[]>(initialItems);
+  const { user } = useAuth();
+  const [products, setProducts] = useState<InventoryItem[]>([]);
   const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
