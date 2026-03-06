@@ -138,7 +138,13 @@ const AdminPage = () => {
     if (!editUser) return;
     setSaving(true);
     try {
-      await callAdmin({ action: "update_user", user_id: editUser.user_id, ...editForm });
+      const payload: any = { action: "update_user", user_id: editUser.user_id };
+      if (editForm.email) payload.email = editForm.email;
+      if (editForm.full_name) payload.full_name = editForm.full_name;
+      payload.department_id = editForm.department_id || null;
+      if (editForm.new_password) payload.new_password = editForm.new_password;
+      
+      await callAdmin(payload);
       toast.success("Utilizador atualizado");
       setEditUser(null);
       fetchUsers();
