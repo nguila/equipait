@@ -10,152 +10,92 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { departments, resources, type Project, type ProjectStatus, type StrategicCategory, type Priority } from "@/data/mockData";
 
-interface ProjectFormDialogProps {
-  onAdd: (project: Project) => void;
+interface ProfileRow {
+  id: string;
+  user_id: string;
+  full_name: string | null;
 }
 
-const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
+interface ProjectFormDialogProps {
+  profiles: ProfileRow[];
+  onAdd: (form: any) => void;
+}
+
+const ProjectFormDialog = ({ profiles, onAdd }: ProjectFormDialogProps) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    name: "",
-    code: "",
-    description: "",
-    departmentId: "",
-    sponsorDepartmentId: "",
-    category: "" as StrategicCategory | "",
-    priority: "" as Priority | "",
-    status: "planeado" as ProjectStatus,
+    title: "", description: "", priority: "medium", status: "planning",
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
-    managerId: "",
-    budget: "",
+    responsible_id: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.code || !form.departmentId || !form.category || !form.priority || !form.startDate || !form.endDate || !form.managerId) return;
-
-    const newProject: Project = {
-      id: `p${Date.now()}`,
-      name: form.name.trim(),
-      code: form.code.trim(),
+    if (!form.title) return;
+    onAdd({
+      title: form.title.trim(),
       description: form.description.trim(),
-      departmentId: form.departmentId,
-      sponsorDepartmentId: form.sponsorDepartmentId || form.departmentId,
-      category: form.category as StrategicCategory,
-      priority: form.priority as Priority,
+      priority: form.priority,
       status: form.status,
-      startDate: form.startDate ? format(form.startDate, "yyyy-MM-dd") : "",
-      endDate: form.endDate ? format(form.endDate, "yyyy-MM-dd") : "",
-      managerId: form.managerId,
-      budget: form.budget ? Number(form.budget) : undefined,
-      progress: 0,
-      taskCount: 0,
-      teamSize: 1,
-    };
-
-    onAdd(newProject);
-    setForm({ name: "", code: "", description: "", departmentId: "", sponsorDepartmentId: "", category: "", priority: "", status: "planeado", startDate: undefined, endDate: undefined, managerId: "", budget: "" });
+      start_date: form.startDate ? format(form.startDate, "yyyy-MM-dd") : null,
+      end_date: form.endDate ? format(form.endDate, "yyyy-MM-dd") : null,
+      responsible_id: form.responsible_id || null,
+    });
+    setForm({ title: "", description: "", priority: "medium", status: "planning", startDate: undefined, endDate: undefined, responsible_id: "" });
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" /> Novo Projeto
-        </Button>
+        <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Novo Projeto</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Novo Projeto</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="proj-name">Nome *</Label>
-              <Input id="proj-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={100} required />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="proj-code">Código *</Label>
-              <Input id="proj-code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="PRJ-007" maxLength={20} required />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="proj-title">Título *</Label>
+            <Input id="proj-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} maxLength={100} required />
           </div>
-
           <div className="space-y-1.5">
             <Label htmlFor="proj-desc">Descrição</Label>
             <Textarea id="proj-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={500} rows={2} />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Departamento *</Label>
-              <Select value={form.departmentId} onValueChange={(v) => setForm({ ...form, departmentId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <Label>Prioridade</Label>
+              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Sponsor</Label>
-              <Select value={form.sponsorDepartmentId} onValueChange={(v) => setForm({ ...form, sponsorDepartmentId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>Categoria *</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as StrategicCategory })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="regulatorio">Regulatório</SelectItem>
-                  <SelectItem value="operacional">Operacional</SelectItem>
-                  <SelectItem value="inovacao">Inovação</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Prioridade *</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as Priority })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="critica">Crítica</SelectItem>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="media">Média</SelectItem>
-                  <SelectItem value="baixa">Baixa</SelectItem>
+                  <SelectItem value="critical">Crítica</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Estado</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ProjectStatus })}>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="planeado">Planeado</SelectItem>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="em_pausa">Em Pausa</SelectItem>
+                  <SelectItem value="planning">Planeamento</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="on_hold">Em Pausa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Data Início *</Label>
+              <Label>Data Início</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.startDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.startDate ? format(form.startDate, "dd MMM yyyy") : "Selecionar data"}
+                    {form.startDate ? format(form.startDate, "dd MMM yyyy") : "Selecionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -164,12 +104,12 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
               </Popover>
             </div>
             <div className="space-y-1.5">
-              <Label>Data Fim *</Label>
+              <Label>Data Fim</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.endDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.endDate ? format(form.endDate, "dd MMM yyyy") : "Selecionar data"}
+                    {form.endDate ? format(form.endDate, "dd MMM yyyy") : "Selecionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -178,23 +118,15 @@ const ProjectFormDialog = ({ onAdd }: ProjectFormDialogProps) => {
               </Popover>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Gestor *</Label>
-              <Select value={form.managerId} onValueChange={(v) => setForm({ ...form, managerId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {resources.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="proj-budget">Orçamento (€)</Label>
-              <Input id="proj-budget" type="number" min={0} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="0" />
-            </div>
+          <div className="space-y-1.5">
+            <Label>Responsável</Label>
+            <Select value={form.responsible_id} onValueChange={(v) => setForm({ ...form, responsible_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>
+                {profiles.map((p) => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.user_id}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
-
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button type="submit">Criar Projeto</Button>
