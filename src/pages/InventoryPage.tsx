@@ -77,7 +77,7 @@ interface WarehouseLocation {
 const InventoryPage = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState<InventoryItem[]>([]);
-  const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
+  const [requests, setRequests] = useState<StockRequest[]>([]);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
