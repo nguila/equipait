@@ -85,8 +85,8 @@ const InventoryPage = () => {
 
   const [categories, setCategories] = useState<InventoryCategory[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(initialWarehouses);
-  const [locations, setLocations] = useState<WarehouseLocation[]>(initialLocations);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [catForm, setCatForm] = useState({ name: "", description: "" });
