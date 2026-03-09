@@ -832,7 +832,7 @@ const InventoryPage = () => {
               </AlertDialogHeader>
               <div className="flex justify-end gap-2">
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => { if (deleteLocId) { setLocations(prev => prev.filter(l => l.id !== deleteLocId)); setDeleteLocId(null); toast.success("Localização eliminada."); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                <AlertDialogAction onClick={async () => { if (deleteLocId) { const { error } = await supabase.from("inventory_locations").delete().eq("id", deleteLocId); if (error) { toast.error(error.message); } else { toast.success("Localização eliminada."); fetchData(); } setDeleteLocId(null); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
               </div>
             </AlertDialogContent>
           </AlertDialog>
