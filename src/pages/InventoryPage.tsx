@@ -810,12 +810,14 @@ const InventoryPage = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button>
-                  <Button onClick={() => {
+                  <Button onClick={async () => {
                     if (!locForm.name.trim()) { toast.error("Preencha o nome."); return; }
-                    setLocations(prev => [...prev, { id: `loc_${Date.now()}`, name: locForm.name, warehouseId: "", zone: "", capacity: 0, currentOccupancy: 0 }]);
+                    const { error } = await supabase.from("inventory_locations").insert({ name: locForm.name });
+                    if (error) { toast.error(error.message); return; }
                     setLocDialogOpen(false);
                     setLocForm({ name: "" });
                     toast.success("Localização criada.");
+                    fetchData();
                   }}>Criar</Button>
                 </div>
               </div>
