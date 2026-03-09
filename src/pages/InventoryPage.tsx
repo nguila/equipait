@@ -26,6 +26,45 @@ interface InventoryCategory {
   description: string | null;
 }
 
+interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  serialNumber?: string;
+  category: string;
+  location: string;
+  warehouseId: string;
+  locationId: string;
+  departmentId: string;
+  userId: string;
+  userName: string;
+  status: "ativo" | "inativo";
+}
+
+interface StockRequest {
+  id: string;
+  productName: string;
+  quantity: number;
+  requestedBy: string;
+  date: string;
+  status: "pendente" | "em_preparacao" | "entregue" | "cancelado";
+  notes?: string;
+}
+
+interface Warehouse {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  locations: string[];
+}
+
+interface WarehouseLocation {
+  id: string;
+  name: string;
+  warehouseId?: string;
+}
+
 const InventoryPage = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState<InventoryItem[]>([]);
