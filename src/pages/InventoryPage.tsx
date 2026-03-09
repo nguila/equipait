@@ -296,25 +296,33 @@ const InventoryPage = () => {
   };
 
   // Warehouse CRUD
-  const handleSaveWarehouse = () => {
+  const handleSaveWarehouse = async () => {
     if (!whForm.name || !whForm.code) { toast.error("Preencha nome e código."); return; }
-    if (editingWhId) {
-      setWarehouses(prev => prev.map(w => w.id === editingWhId ? { ...w, name: whForm.name, code: whForm.code, address: whForm.address } : w));
-      toast.success("Armazém atualizado.");
-    } else {
-      setWarehouses(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
-      toast.success("Armazém criado.");
+    try {
+      if (editingWhId) {
+        const { error } = await supabase.from("warehouses").update({ name: whForm.name, code: whForm.code, address: whForm.address }).eq("id", editingWhId);
+        if (error) throw error;
+        toast.success("Armazém atualizado.");
+      } else {
+        const { error } = await supabase.from("warehouses").insert({ name: whForm.name, code: whForm.code, address: whForm.address });
+        if (error) throw error;
+        toast.success("Armazém criado.");
+      }
+      setWhDialogOpen(false);
+      setWhForm({ name: "", code: "", address: "" });
+      setEditingWhId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
     }
-    setWhDialogOpen(false);
-    setWhForm({ name: "", code: "", address: "" });
-    setEditingWhId(null);
   };
 
-  const deleteWarehouse = (id: string) => {
-    setWarehouses(prev => prev.filter(w => w.id !== id));
-    setLocations(prev => prev.filter(l => l.warehouseId !== id));
+  const deleteWarehouse = async (id: string) => {
+    const { error } = await supabase.from("warehouses").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
     setDeleteWhId(null);
     toast.success("Armazém eliminado.");
+    fetchData();
   };
 
   const downloadTemplate = () => {
