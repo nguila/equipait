@@ -415,7 +415,7 @@ const InventoryPage = () => {
                 data={filtered.map(item => ({
                   ...item,
                   warehouseName: warehouses.find(w => w.id === item.warehouseId)?.name || item.location || "",
-                  departmentName: departments.find(d => d.id === item.departmentId)?.name || mockDepartments.find(d => d.id === item.departmentId)?.name || "",
+                  departmentName: departments.find(d => d.id === item.departmentId)?.name || "",
                 }))}
                 columns={[
                   { key: "code", label: "Código" },
