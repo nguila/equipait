@@ -247,6 +247,18 @@ const Dashboard = () => {
           <p className="text-xs text-muted-foreground mt-1">Tickets em Aberto</p>
         </div>
       </div>
+
+      {/* Helpdesk Evolution Chart */}
+      <Card className="border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Evolução Helpdesk</CardTitle>
+          <p className="text-xs text-muted-foreground">Distribuição de tickets por estado ao longo do tempo</p>
+        </CardHeader>
+        <CardContent>
+          <HelpdeskChart tickets={allTickets} />
+        </CardContent>
+      </Card>
+
       <Card className="border-border">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
