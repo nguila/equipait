@@ -1,17 +1,29 @@
-import { type StockRequest } from "@/data/mockData";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarDays, User, MapPin, Package } from "lucide-react";
 
+interface StockRequest {
+  id: string;
+  code: string;
+  requesterName: string;
+  productName: string;
+  quantity: number;
+  eventType: string;
+  warehouseName: string;
+  destination: string;
+  expectedPickupDate: string;
+  pickupPersonName: string;
+  status: string;
+}
+
 interface Props {
   requests: StockRequest[];
-  onStatusChange: (id: string, status: StockRequest["status"]) => void;
+  onStatusChange: (id: string, status: string) => void;
 }
 
 const OrdersTable = ({ requests, onStatusChange }: Props) => {
   return (
     <div className="space-y-4">
-      {/* Desktop View - Full Table */}
       <div className="hidden lg:block rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -63,10 +75,8 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Select value={req.status} onValueChange={v => onStatusChange(req.id, v as StockRequest["status"])}>
-                      <SelectTrigger className="h-7 w-32 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Select value={req.status} onValueChange={v => onStatusChange(req.id, v)}>
+                      <SelectTrigger className="h-7 w-32 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pendente">Pendente</SelectItem>
                         <SelectItem value="aprovado">Aprovado</SelectItem>
@@ -83,11 +93,9 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
         </div>
       </div>
 
-      {/* Tablet/Mobile View - Card Layout */}
       <div className="lg:hidden space-y-3">
         {requests.map(req => (
           <div key={req.id} className="rounded-lg border border-border bg-card p-4 space-y-3 hover:bg-muted/30 transition-colors">
-            {/* Header Row */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-mono text-muted-foreground">{req.code}</span>
@@ -96,10 +104,8 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
                   <span className="text-sm font-medium text-card-foreground">{req.requesterName}</span>
                 </div>
               </div>
-              <Select value={req.status} onValueChange={v => onStatusChange(req.id, v as StockRequest["status"])}>
-                <SelectTrigger className="h-7 w-28 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={req.status} onValueChange={v => onStatusChange(req.id, v)}>
+                <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pendente">Pendente</SelectItem>
                   <SelectItem value="aprovado">Aprovado</SelectItem>
@@ -109,13 +115,8 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Divider */}
             <div className="h-px bg-border" />
-
-            {/* Details Grid */}
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {/* Produto */}
               <div className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Produto</span>
                 <div className="flex items-center gap-1.5">
@@ -123,20 +124,14 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
                   <span className="text-sm text-card-foreground">{req.productName}</span>
                 </div>
               </div>
-
-              {/* Quantidade */}
               <div className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quantidade</span>
                 <span className="text-sm font-semibold text-card-foreground">{req.quantity} un.</span>
               </div>
-
-              {/* Tipo */}
               <div className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo</span>
                 <StatusBadge status={req.eventType} />
               </div>
-
-              {/* Armazém */}
               <div className="space-y-1">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Armazém</span>
                 <div className="flex items-center gap-1.5">
@@ -144,30 +139,11 @@ const OrdersTable = ({ requests, onStatusChange }: Props) => {
                   <span className="text-sm text-muted-foreground">{req.warehouseName}</span>
                 </div>
               </div>
-
-              {/* Destino */}
-              <div className="space-y-1 col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Destino</span>
-                <span className="text-sm text-muted-foreground">{req.destination}</span>
-              </div>
-
-              {/* Recolha */}
-              <div className="space-y-1 col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recolha</span>
-                <div className="flex items-center gap-1.5">
-                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs text-muted-foreground">{req.expectedPickupDate}</span>
-                    <span className="text-xs text-muted-foreground">{req.pickupPersonName}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Empty State */}
       {requests.length === 0 && (
         <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
           <p className="text-sm text-muted-foreground">Sem pedidos para exibir</p>

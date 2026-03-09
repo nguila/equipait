@@ -1,5 +1,13 @@
-import { type InventoryItem } from "@/data/mockData";
 import { Package, User } from "lucide-react";
+
+interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  status: string;
+  user_name: string | null;
+}
 
 interface Props {
   products: InventoryItem[];
@@ -51,7 +59,7 @@ const StockStatusCards = ({ products }: Props) => {
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm text-card-foreground">{p.userName || "—"}</span>
+                <span className="text-sm text-card-foreground">{p.user_name || "—"}</span>
               </div>
               <div className="text-right w-20">
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.status === "ativo" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
