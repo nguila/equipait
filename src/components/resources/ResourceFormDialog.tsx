@@ -5,21 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, X } from "lucide-react";
-import { departments, type Resource } from "@/data/mockData";
 
-interface ResourceFormDialogProps {
-  onAdd: (resource: Resource) => void;
+interface Department {
+  id: string;
+  name: string;
 }
 
-const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
+interface ResourceFormDialogProps {
+  departments: Department[];
+  onAdd: (form: any) => void;
+}
+
+const ResourceFormDialog = ({ departments, onAdd }: ResourceFormDialogProps) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    role: "",
-    departmentId: "",
-    weeklyCapacity: "40",
-    skillInput: "",
+    name: "", email: "", role: "", department_id: "", weekly_capacity: "40", skillInput: "",
   });
   const [skills, setSkills] = useState<string[]>([]);
 
@@ -33,22 +33,16 @@ const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.role || !form.departmentId) return;
-
-    const newResource: Resource = {
-      id: `r${Date.now()}`,
+    if (!form.name || !form.email || !form.role) return;
+    onAdd({
       name: form.name.trim(),
       email: form.email.trim(),
       role: form.role.trim(),
-      departmentId: form.departmentId,
+      department_id: form.department_id || null,
       skills,
-      weeklyCapacity: Number(form.weeklyCapacity) || 40,
-      currentAllocation: 0,
-      status: "ativo",
-    };
-
-    onAdd(newResource);
-    setForm({ name: "", email: "", role: "", departmentId: "", weeklyCapacity: "40", skillInput: "" });
+      weekly_capacity: Number(form.weekly_capacity) || 40,
+    });
+    setForm({ name: "", email: "", role: "", department_id: "", weekly_capacity: "40", skillInput: "" });
     setSkills([]);
     setOpen(false);
   };
@@ -56,14 +50,10 @@ const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" /> Novo Recurso
-        </Button>
+        <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Novo Recurso</Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Novo Recurso</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Novo Recurso</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -75,15 +65,14 @@ const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
               <Input id="r-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} maxLength={255} required />
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="r-role">Função *</Label>
               <Input id="r-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Ex: Engenheiro Full-Stack" maxLength={100} required />
             </div>
             <div className="space-y-1.5">
-              <Label>Departamento *</Label>
-              <Select value={form.departmentId} onValueChange={(v) => setForm({ ...form, departmentId: v })}>
+              <Label>Departamento</Label>
+              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
@@ -91,22 +80,14 @@ const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
               </Select>
             </div>
           </div>
-
           <div className="space-y-1.5">
             <Label htmlFor="r-cap">Capacidade Semanal (h)</Label>
-            <Input id="r-cap" type="number" min={1} max={80} value={form.weeklyCapacity} onChange={(e) => setForm({ ...form, weeklyCapacity: e.target.value })} />
+            <Input id="r-cap" type="number" min={1} max={80} value={form.weekly_capacity} onChange={(e) => setForm({ ...form, weekly_capacity: e.target.value })} />
           </div>
-
           <div className="space-y-1.5">
             <Label>Competências</Label>
             <div className="flex gap-2">
-              <Input
-                value={form.skillInput}
-                onChange={(e) => setForm({ ...form, skillInput: e.target.value })}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
-                placeholder="Ex: React"
-                maxLength={30}
-              />
+              <Input value={form.skillInput} onChange={(e) => setForm({ ...form, skillInput: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }} placeholder="Ex: React" maxLength={30} />
               <Button type="button" variant="outline" size="sm" onClick={addSkill}>+</Button>
             </div>
             {skills.length > 0 && (
@@ -120,7 +101,6 @@ const ResourceFormDialog = ({ onAdd }: ResourceFormDialogProps) => {
               </div>
             )}
           </div>
-
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button type="submit">Adicionar Recurso</Button>
