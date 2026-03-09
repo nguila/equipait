@@ -4,7 +4,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, Lock, Loader2 } from "lucide-react";
+import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, Lock, Loader2, BarChart3 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import TaskListView from "@/components/projects/TaskListView";
 import TaskKanbanView from "@/components/projects/TaskKanbanView";
