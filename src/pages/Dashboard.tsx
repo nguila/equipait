@@ -16,12 +16,15 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { format, parseISO } from "date-fns";
+import { pt } from "date-fns/locale";
 
 interface TicketStats {
   total: number;
@@ -32,6 +35,53 @@ interface TicketStats {
   resolutionRate: number;
   avgResponseHours: number;
 }
+
+const HelpdeskChart = ({ tickets }: { tickets: any[] }) => {
+  const chartData = useMemo(() => {
+    const months: Record<string, { month: string; Pendente: number; "Em Tratamento": number; Resolvido: number; Concluído: number }> = {};
+    tickets.forEach((t) => {
+      if (!t.created_at) return;
+      const key = format(parseISO(t.created_at), "yyyy-MM");
+      const label = format(parseISO(t.created_at), "MMM yyyy", { locale: pt });
+      if (!months[key]) months[key] = { month: label, Pendente: 0, "Em Tratamento": 0, Resolvido: 0, Concluído: 0 };
+      if (t.status === "pendente") months[key].Pendente++;
+      else if (t.status === "em_tratamento") months[key]["Em Tratamento"]++;
+      else if (t.status === "resolvido") months[key].Resolvido++;
+      else if (t.status === "concluido") months[key].Concluído++;
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, v]) => v);
+  }, [tickets]);
+
+  if (chartData.length === 0) {
+    return <p className="text-center text-sm text-muted-foreground py-8">Sem dados suficientes para o gráfico</p>;
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+        <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
+            borderRadius: "8px",
+            fontSize: "12px",
+          }}
+          labelStyle={{ color: "hsl(var(--card-foreground))", fontWeight: 600 }}
+        />
+        <Legend wrapperStyle={{ fontSize: "12px" }} />
+        <Bar dataKey="Pendente" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="Em Tratamento" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="Resolvido" fill="hsl(152, 69%, 41%)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="Concluído" fill="hsl(270, 50%, 55%)" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
 const quickLinks = [
   {
@@ -244,6 +294,18 @@ const Dashboard = () => {
           <p className="text-xs text-muted-foreground mt-1">Tickets em Aberto</p>
         </div>
       </div>
+
+      {/* Helpdesk Evolution Chart */}
+      <Card className="border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Evolução Helpdesk</CardTitle>
+          <p className="text-xs text-muted-foreground">Distribuição de tickets por estado ao longo do tempo</p>
+        </CardHeader>
+        <CardContent>
+          <HelpdeskChart tickets={allTickets} />
+        </CardContent>
+      </Card>
+
       <Card className="border-border">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
