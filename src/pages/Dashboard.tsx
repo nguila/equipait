@@ -83,7 +83,7 @@ const HelpdeskChart = ({ tickets }: { tickets: any[] }) => {
   );
 };
 
-
+const quickLinks = [
   {
     icon: Headphones,
     label: "Helpdesk",
