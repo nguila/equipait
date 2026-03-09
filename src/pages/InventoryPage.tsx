@@ -109,13 +109,17 @@ const InventoryPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [catsRes, deptsRes, itemsRes] = await Promise.all([
+    const [catsRes, deptsRes, itemsRes, whRes, locsRes] = await Promise.all([
       supabase.from("inventory_categories").select("*").order("name"),
       supabase.from("departments").select("id, name, description").order("name"),
       supabase.from("inventory_items").select("*").order("code"),
+      supabase.from("warehouses").select("*").order("name"),
+      supabase.from("inventory_locations").select("*").order("name"),
     ]);
     if (catsRes.data) setCategories(catsRes.data as InventoryCategory[]);
     if (deptsRes.data) setDepartments(deptsRes.data);
+    if (whRes.data) setWarehouses(whRes.data.map((w: any) => ({ id: w.id, name: w.name, code: w.code, address: w.address || "", locations: [] })));
+    if (locsRes.data) setLocations(locsRes.data.map((l: any) => ({ id: l.id, name: l.name })));
     if (itemsRes.data) {
       setProducts(itemsRes.data.map((row: any) => ({
         id: row.id,
