@@ -43,11 +43,17 @@ interface InventoryItem {
 
 interface StockRequest {
   id: string;
+  code: string;
+  requesterName: string;
   productName: string;
   quantity: number;
-  requestedBy: string;
+  eventType: string;
+  warehouseName: string;
+  destination: string;
+  expectedPickupDate: string;
+  pickupPersonName: string;
   date: string;
-  status: "pendente" | "em_preparacao" | "entregue" | "cancelado";
+  status: string;
   notes?: string;
 }
 
