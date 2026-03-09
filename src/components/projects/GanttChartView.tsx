@@ -245,12 +245,23 @@ const GanttChartView = ({ project, tasks, profiles }: Props) => {
       const x2 = succBar.left;
       const y2 = succIdx * ROW_HEIGHT + ROW_HEIGHT / 2;
 
-      // Create a path with rounded corners
-      const midX = x1 + Math.max(8, (x2 - x1) / 2);
+      let path: string;
+      if (x2 >= x1 + 16) {
+        // Normal case: successor starts after predecessor ends
+        const midX = x1 + (x2 - x1) / 2;
+        path = `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`;
+      } else {
+        // Overlap case: route around via below/above
+        const offsetX = 10;
+        const detourY = y1 < y2
+          ? Math.max(y1, y2) + ROW_HEIGHT * 0.6
+          : Math.min(y1, y2) - ROW_HEIGHT * 0.6;
+        path = `M ${x1} ${y1} H ${x1 + offsetX} V ${detourY} H ${x2 - offsetX} V ${y2} H ${x2}`;
+      }
 
       return {
         id: dep.id,
-        path: `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`,
+        path,
         arrowX: x2,
         arrowY: y2,
       };
