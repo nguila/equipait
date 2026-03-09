@@ -31,16 +31,12 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: { user: caller }, error: callerError } = await supabaseAdmin.auth.getUser(token);
+    if (callerError || !caller) {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
-    const callerId = claimsData.claims.sub;
+    const callerId = caller.id;
 
     const { data: isAdmin, error: roleError } = await supabaseAdmin.rpc("has_role", {
       _user_id: callerId,
