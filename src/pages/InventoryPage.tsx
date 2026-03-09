@@ -26,10 +26,58 @@ interface InventoryCategory {
   description: string | null;
 }
 
+interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  serialNumber?: string;
+  category: string;
+  location: string;
+  warehouseId: string;
+  locationId: string;
+  departmentId: string;
+  userId: string;
+  userName: string;
+  status: "ativo" | "inativo";
+}
+
+interface StockRequest {
+  id: string;
+  code: string;
+  requesterName: string;
+  productName: string;
+  quantity: number;
+  eventType: string;
+  warehouseName: string;
+  destination: string;
+  expectedPickupDate: string;
+  pickupPersonName: string;
+  date: string;
+  status: string;
+  notes?: string;
+}
+
+interface Warehouse {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  locations: string[];
+}
+
+interface WarehouseLocation {
+  id: string;
+  name: string;
+  warehouseId?: string;
+  zone?: string;
+  capacity?: number;
+  currentOccupancy?: number;
+}
+
 const InventoryPage = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState<InventoryItem[]>([]);
-  const [requests, setRequests] = useState<StockRequest[]>(initialRequests);
+  const [requests, setRequests] = useState<StockRequest[]>([]);
   const [catFilter, setCatFilter] = useState<string>("all");
   const [orderFilter, setOrderFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,8 +85,8 @@ const InventoryPage = () => {
 
   const [categories, setCategories] = useState<InventoryCategory[]>([]);
   const [departments, setDepartments] = useState<{ id: string; name: string; description: string | null }[]>([]);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(initialWarehouses);
-  const [locations, setLocations] = useState<WarehouseLocation[]>(initialLocations);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [catForm, setCatForm] = useState({ name: "", description: "" });
@@ -367,7 +415,7 @@ const InventoryPage = () => {
                 data={filtered.map(item => ({
                   ...item,
                   warehouseName: warehouses.find(w => w.id === item.warehouseId)?.name || item.location || "",
-                  departmentName: departments.find(d => d.id === item.departmentId)?.name || mockDepartments.find(d => d.id === item.departmentId)?.name || "",
+                  departmentName: departments.find(d => d.id === item.departmentId)?.name || "",
                 }))}
                 columns={[
                   { key: "code", label: "Código" },
@@ -430,7 +478,7 @@ const InventoryPage = () => {
                 {filtered.length === 0 ? (
                   <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
                 ) : filtered.map((item) => {
-                  const dept = departments.find((d) => d.id === item.departmentId) || mockDepartments.find(d => d.id === item.departmentId);
+                  const dept = departments.find((d) => d.id === item.departmentId);
                   return (
                     <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3.5">
