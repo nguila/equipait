@@ -69,6 +69,9 @@ interface WarehouseLocation {
   id: string;
   name: string;
   warehouseId?: string;
+  zone?: string;
+  capacity?: number;
+  currentOccupancy?: number;
 }
 
 const InventoryPage = () => {
