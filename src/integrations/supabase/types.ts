@@ -332,6 +332,90 @@ export type Database = {
           },
         ]
       }
+      project_tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string
+          delay_days: number | null
+          description: string | null
+          end_date: string | null
+          hours_estimated: number
+          hours_logged: number
+          id: string
+          is_milestone: boolean
+          milestone_label: string | null
+          parent_task_id: string | null
+          priority: string
+          project_id: string
+          risk_level: string | null
+          start_date: string | null
+          status: string
+          team_ids: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by: string
+          delay_days?: number | null
+          description?: string | null
+          end_date?: string | null
+          hours_estimated?: number
+          hours_logged?: number
+          id?: string
+          is_milestone?: boolean
+          milestone_label?: string | null
+          parent_task_id?: string | null
+          priority?: string
+          project_id: string
+          risk_level?: string | null
+          start_date?: string | null
+          status?: string
+          team_ids?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string
+          delay_days?: number | null
+          description?: string | null
+          end_date?: string | null
+          hours_estimated?: number
+          hours_logged?: number
+          id?: string
+          is_milestone?: boolean
+          milestone_label?: string | null
+          parent_task_id?: string | null
+          priority?: string
+          project_id?: string
+          risk_level?: string | null
+          start_date?: string | null
+          status?: string
+          team_ids?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "project_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
@@ -376,6 +460,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      resources: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_allocation: number
+          department_id: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          skills: string[] | null
+          status: string
+          updated_at: string
+          weekly_capacity: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_allocation?: number
+          department_id?: string | null
+          email: string
+          id?: string
+          name: string
+          role?: string
+          skills?: string[] | null
+          status?: string
+          updated_at?: string
+          weekly_capacity?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_allocation?: number
+          department_id?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          skills?: string[] | null
+          status?: string
+          updated_at?: string
+          weekly_capacity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
@@ -591,6 +728,68 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vehicles: {
+        Row: {
+          brand: string
+          created_at: string
+          created_by: string
+          department_id: string | null
+          id: string
+          insurance_expiry: string | null
+          location: string | null
+          mileage: number
+          model: string
+          next_maintenance: string | null
+          plate: string
+          status: string
+          type: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          created_by: string
+          department_id?: string | null
+          id?: string
+          insurance_expiry?: string | null
+          location?: string | null
+          mileage?: number
+          model: string
+          next_maintenance?: string | null
+          plate: string
+          status?: string
+          type?: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          created_by?: string
+          department_id?: string | null
+          id?: string
+          insurance_expiry?: string | null
+          location?: string | null
+          mileage?: number
+          model?: string
+          next_maintenance?: string | null
+          plate?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
