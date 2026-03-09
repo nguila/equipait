@@ -478,7 +478,7 @@ const InventoryPage = () => {
                 {filtered.length === 0 ? (
                   <tr><td colSpan={9} className="px-5 py-12 text-center text-muted-foreground">Nenhum produto encontrado</td></tr>
                 ) : filtered.map((item) => {
-                  const dept = departments.find((d) => d.id === item.departmentId) || mockDepartments.find(d => d.id === item.departmentId);
+                  const dept = departments.find((d) => d.id === item.departmentId);
                   return (
                     <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3.5">
