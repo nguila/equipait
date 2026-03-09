@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import TaskListView from "@/components/projects/TaskListView";
 import TaskKanbanView from "@/components/projects/TaskKanbanView";
 import TaskTimelineView from "@/components/projects/TaskTimelineView";
+import GanttChartView from "@/components/projects/GanttChartView";
 import ProjectFormDialog from "@/components/projects/ProjectFormDialog";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
