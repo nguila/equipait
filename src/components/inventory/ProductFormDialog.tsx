@@ -5,61 +5,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit2 } from "lucide-react";
-import { warehouses, warehouseLocations, type InventoryItem } from "@/data/mockData";
 import { toast } from "sonner";
 
 interface Props {
-  onAdd?: (item: InventoryItem) => void;
-  onEdit?: (item: InventoryItem) => void;
-  editItem?: InventoryItem | null;
+  onAdd?: (item: any) => void;
+  onEdit?: (item: any) => void;
+  editItem?: any;
   categories?: string[];
   departments?: { id: string; name: string }[];
+  warehouses?: { id: string; name: string }[];
+  locations?: { id: string; name: string; warehouseId?: string }[];
 }
 
-const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories, departments: propDepartments }: Props) => {
+const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories, departments: propDepartments, warehouses: propWarehouses, locations: propLocations }: Props) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: editItem?.name || "",
     code: editItem?.code || "",
-    serialNumber: editItem?.serialNumber || "",
+    serialNumber: editItem?.serial_number || "",
     category: editItem?.category || "",
-    warehouseId: editItem?.warehouseId || "",
-    locationId: editItem?.locationId || "",
-    departmentId: editItem?.departmentId || "",
-    userName: editItem?.userName || "",
+    warehouseId: editItem?.warehouse_id || "",
+    locationId: editItem?.location_id || "",
+    departmentId: editItem?.department_id || "",
+    userName: editItem?.user_name || "",
   });
 
   const categories = propCategories || ["Equipamento Informático", "Software", "Infraestrutura", "Equipamento Industrial", "Audiovisual", "Material de Escritório", "Outro"];
   const depts = propDepartments || [];
-  const filteredLocations = warehouseLocations.filter(l => l.warehouseId === form.warehouseId);
+  const whs = propWarehouses || [];
+  const locs = propLocations || [];
+  const filteredLocations = locs.filter(l => (l as any).warehouseId === form.warehouseId);
 
   const handleSubmit = () => {
-    if (!form.name || !form.category || !form.warehouseId || !form.departmentId) {
+    if (!form.name || !form.category) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
-    const wh = warehouses.find(w => w.id === form.warehouseId);
-    const loc = warehouseLocations.find(l => l.id === form.locationId);
-    const newItem: InventoryItem = {
-      id: editItem?.id || `i${Date.now()}`,
+    const data = {
+      id: editItem?.id,
       code: form.code || "AUTO",
       name: form.name,
-      serialNumber: form.serialNumber || undefined,
+      serial_number: form.serialNumber || null,
       category: form.category,
-      location: loc?.name || wh?.name || "",
-      warehouseId: form.warehouseId,
-      locationId: form.locationId,
-      departmentId: form.departmentId,
-      userId: editItem?.userId || "",
-      userName: form.userName,
+      warehouse_id: form.warehouseId || null,
+      location_id: form.locationId || null,
+      department_id: form.departmentId || null,
+      user_name: form.userName || null,
       status: editItem?.status || "ativo",
     };
     if (editItem && onEdit) {
-      onEdit(newItem);
-      toast.success("Produto atualizado com sucesso.");
+      onEdit(data);
     } else if (onAdd) {
-      onAdd(newItem);
-      toast.success("Produto adicionado com sucesso.");
+      onAdd(data);
     }
     setOpen(false);
     setForm({ name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
@@ -73,9 +70,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
             <Edit2 className="h-4 w-4" />
           </button>
         ) : (
-          <Button size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" /> Adicionar Produto
-          </Button>
+          <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Adicionar Produto</Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -110,24 +105,10 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Departamento *</Label>
+            <Label>Departamento</Label>
             <Select value={form.departmentId} onValueChange={v => setForm(f => ({ ...f, departmentId: v }))}>
               <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
               <SelectContent>{depts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Armazém *</Label>
-            <Select value={form.warehouseId} onValueChange={v => setForm(f => ({ ...f, warehouseId: v, locationId: "" }))}>
-              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-              <SelectContent>{warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Localização</Label>
-            <Select value={form.locationId} onValueChange={v => setForm(f => ({ ...f, locationId: v }))} disabled={!form.warehouseId}>
-              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-              <SelectContent>{filteredLocations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="col-span-2 space-y-1.5">

@@ -1,7 +1,6 @@
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Download, Upload } from "lucide-react";
-import { type InventoryItem } from "@/data/mockData";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { z } from "zod";
@@ -20,9 +19,23 @@ const InventoryRowSchema = z.object({
   status: z.string().trim().max(20).default("ativo"),
 });
 
+interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  location: string | null;
+  warehouse_id: string | null;
+  location_id: string | null;
+  department_id: string | null;
+  user_name: string | null;
+  status: string;
+  serial_number?: string | null;
+}
+
 interface Props {
   products: InventoryItem[];
-  onImport: (items: InventoryItem[]) => void;
+  onImport: (items: any[]) => void;
 }
 
 const ExcelImportExport = ({ products, onImport }: Props) => {
@@ -33,10 +46,9 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
       Código: p.code,
       Nome: p.name,
       Categoria: p.category,
-      Armazém: p.location || "",
-      Localização: p.locationId || "",
-      Departamento: p.departmentId || "",
-      Utilizador: p.userName || "",
+      Localização: p.location || "",
+      Departamento: p.department_id || "",
+      Utilizador: p.user_name || "",
       Estado: p.status,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
@@ -68,7 +80,7 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
           return;
         }
 
-        const validItems: InventoryItem[] = [];
+        const validItems: any[] = [];
         let skipped = 0;
 
         data.forEach((row, idx) => {
@@ -85,17 +97,12 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
 
           if (parsed.success) {
             validItems.push({
-              id: `imp_${Date.now()}_${idx}`,
               code: parsed.data.code,
               name: parsed.data.name,
               category: parsed.data.category,
               location: parsed.data.warehouse,
-              warehouseId: "",
-              locationId: parsed.data.location,
-              departmentId: "",
-              userId: "",
-              userName: parsed.data.userName,
-              status: (parsed.data.status as "ativo" | "inativo") || "ativo",
+              user_name: parsed.data.userName,
+              status: parsed.data.status || "ativo",
             });
           } else {
             skipped++;
@@ -109,7 +116,7 @@ const ExcelImportExport = ({ products, onImport }: Props) => {
 
         onImport(validItems);
         const msg = skipped > 0
-          ? `${validItems.length} produtos importados. ${skipped} linhas ignoradas por dados inválidos.`
+          ? `${validItems.length} produtos importados. ${skipped} linhas ignoradas.`
           : `${validItems.length} produtos importados.`;
         toast.success(msg);
       } catch {

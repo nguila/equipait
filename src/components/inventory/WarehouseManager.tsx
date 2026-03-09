@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { warehouses as initialWarehouses, warehouseLocations as initialLocations, type Warehouse, type WarehouseLocation } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +7,32 @@ import { Plus, MapPin, Warehouse as WarehouseIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
-const WarehouseManager = () => {
-  const [whList, setWhList] = useState<Warehouse[]>(initialWarehouses);
-  const [locList, setLocList] = useState<WarehouseLocation[]>(initialLocations);
+interface Warehouse {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+}
+
+interface WarehouseLocation {
+  id: string;
+  warehouseId: string;
+  name: string;
+  zone: string;
+  capacity: number;
+  currentOccupancy: number;
+}
+
+interface Props {
+  warehouses?: Warehouse[];
+  locations?: WarehouseLocation[];
+  onWarehouseAdd?: (wh: Warehouse) => void;
+  onLocationAdd?: (loc: WarehouseLocation) => void;
+}
+
+const WarehouseManager = ({ warehouses: propWarehouses, locations: propLocations, onWarehouseAdd, onLocationAdd }: Props) => {
+  const [whList, setWhList] = useState<Warehouse[]>(propWarehouses || []);
+  const [locList, setLocList] = useState<WarehouseLocation[]>(propLocations || []);
   const [openWh, setOpenWh] = useState(false);
   const [openLoc, setOpenLoc] = useState(false);
   const [whForm, setWhForm] = useState({ name: "", code: "", address: "" });
@@ -18,7 +40,9 @@ const WarehouseManager = () => {
 
   const addWarehouse = () => {
     if (!whForm.name || !whForm.code) { toast.error("Preencha nome e código."); return; }
-    setWhList(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
+    const newWh = { id: `w${Date.now()}`, ...whForm };
+    setWhList(prev => [...prev, newWh]);
+    onWarehouseAdd?.(newWh);
     setOpenWh(false);
     setWhForm({ name: "", code: "", address: "" });
     toast.success("Armazém criado.");
@@ -26,7 +50,9 @@ const WarehouseManager = () => {
 
   const addLocation = () => {
     if (!locForm.warehouseId || !locForm.name) { toast.error("Preencha os campos obrigatórios."); return; }
-    setLocList(prev => [...prev, { id: `wl${Date.now()}`, warehouseId: locForm.warehouseId, name: locForm.name, zone: locForm.zone, capacity: Number(locForm.capacity) || 0, currentOccupancy: 0 }]);
+    const newLoc = { id: `wl${Date.now()}`, warehouseId: locForm.warehouseId, name: locForm.name, zone: locForm.zone, capacity: Number(locForm.capacity) || 0, currentOccupancy: 0 };
+    setLocList(prev => [...prev, newLoc]);
+    onLocationAdd?.(newLoc);
     setOpenLoc(false);
     setLocForm({ warehouseId: "", name: "", zone: "", capacity: "" });
     toast.success("Localização criada.");
@@ -108,6 +134,9 @@ const WarehouseManager = () => {
             </div>
           );
         })}
+        {whList.length === 0 && (
+          <p className="col-span-full text-center text-sm text-muted-foreground py-8">Nenhum armazém definido</p>
+        )}
       </div>
     </div>
   );
