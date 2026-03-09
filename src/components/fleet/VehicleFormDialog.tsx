@@ -9,63 +9,54 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { departments, type Vehicle } from "@/data/mockData";
 
-interface VehicleFormDialogProps {
-  onAdd: (vehicle: Vehicle) => void;
+interface Department {
+  id: string;
+  name: string;
 }
 
-const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
+interface VehicleFormDialogProps {
+  departments: Department[];
+  onAdd: (form: any) => void;
+}
+
+const VehicleFormDialog = ({ departments, onAdd }: VehicleFormDialogProps) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    plate: "",
-    brand: "",
-    model: "",
-    type: "" as Vehicle["type"] | "",
-    year: "",
-    mileage: "",
-    status: "operacional" as Vehicle["status"],
-    location: "",
-    departmentId: "",
+    plate: "", brand: "", model: "", type: "", year: "", mileage: "",
+    status: "operacional", location: "", department_id: "",
     nextMaintenance: undefined as Date | undefined,
     insuranceExpiry: undefined as Date | undefined,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.plate || !form.brand || !form.model || !form.type || !form.year || !form.departmentId) return;
+    if (!form.plate || !form.brand || !form.model || !form.type || !form.year) return;
 
-    const newVehicle: Vehicle = {
-      id: `v${Date.now()}`,
+    onAdd({
       plate: form.plate.trim().toUpperCase(),
       brand: form.brand.trim(),
       model: form.model.trim(),
-      type: form.type as Vehicle["type"],
+      type: form.type,
       year: Number(form.year),
       mileage: Number(form.mileage) || 0,
       status: form.status,
-      location: form.location.trim() || "Sede",
-      departmentId: form.departmentId,
-      nextMaintenance: form.nextMaintenance ? format(form.nextMaintenance, "yyyy-MM-dd") : undefined,
-      insuranceExpiry: form.insuranceExpiry ? format(form.insuranceExpiry, "yyyy-MM-dd") : undefined,
-    };
-
-    onAdd(newVehicle);
-    setForm({ plate: "", brand: "", model: "", type: "", year: "", mileage: "", status: "operacional", location: "", departmentId: "", nextMaintenance: undefined, insuranceExpiry: undefined });
+      location: form.location.trim() || null,
+      department_id: form.department_id || null,
+      next_maintenance: form.nextMaintenance ? format(form.nextMaintenance, "yyyy-MM-dd") : null,
+      insurance_expiry: form.insuranceExpiry ? format(form.insuranceExpiry, "yyyy-MM-dd") : null,
+    });
+    setForm({ plate: "", brand: "", model: "", type: "", year: "", mileage: "", status: "operacional", location: "", department_id: "", nextMaintenance: undefined, insuranceExpiry: undefined });
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" /> Novo Veículo
-        </Button>
+        <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Novo Veículo</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Novo Veículo</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Novo Veículo</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
@@ -85,7 +76,7 @@ const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label>Tipo *</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Vehicle["type"] })}>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ligeiro">Ligeiro</SelectItem>
@@ -111,8 +102,8 @@ const VehicleFormDialog = ({ onAdd }: VehicleFormDialogProps) => {
               <Input id="v-location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Sede" maxLength={50} />
             </div>
             <div className="space-y-1.5">
-              <Label>Departamento *</Label>
-              <Select value={form.departmentId} onValueChange={(v) => setForm({ ...form, departmentId: v })}>
+              <Label>Departamento</Label>
+              <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
