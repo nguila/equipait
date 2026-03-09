@@ -4,11 +4,12 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, Lock, Loader2 } from "lucide-react";
+import { List, LayoutGrid, ChevronRight, Clock as ClockIcon, Lock, Loader2, BarChart3 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import TaskListView from "@/components/projects/TaskListView";
 import TaskKanbanView from "@/components/projects/TaskKanbanView";
 import TaskTimelineView from "@/components/projects/TaskTimelineView";
+import GanttChartView from "@/components/projects/GanttChartView";
 import ProjectFormDialog from "@/components/projects/ProjectFormDialog";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
@@ -252,6 +253,7 @@ const ProjectsPage = () => {
               <TabsTrigger value="list" className="gap-1.5 text-xs"><List className="h-4 w-4" /> Lista</TabsTrigger>
               <TabsTrigger value="kanban" className="gap-1.5 text-xs"><LayoutGrid className="h-4 w-4" /> Kanban</TabsTrigger>
               <TabsTrigger value="timeline" className="gap-1.5 text-xs"><ClockIcon className="h-4 w-4" /> Timeline</TabsTrigger>
+              <TabsTrigger value="gantt" className="gap-1.5 text-xs"><BarChart3 className="h-4 w-4" /> Gantt</TabsTrigger>
             </TabsList>
 
             <TabsContent value="list">
@@ -262,6 +264,9 @@ const ProjectsPage = () => {
             </TabsContent>
             <TabsContent value="timeline">
               <TaskTimelineView project={selectedProjectData} tasks={tasks} profiles={profiles} />
+            </TabsContent>
+            <TabsContent value="gantt">
+              <GanttChartView project={selectedProjectData} tasks={tasks} profiles={profiles} />
             </TabsContent>
           </Tabs>
         </div>
