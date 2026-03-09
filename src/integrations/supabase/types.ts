@@ -270,6 +270,24 @@ export type Database = {
           },
         ]
       }
+      inventory_locations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       knowledge_areas: {
         Row: {
           created_at: string
@@ -790,6 +808,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      warehouses: {
+        Row: {
+          address: string | null
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {

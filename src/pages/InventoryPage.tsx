@@ -109,13 +109,17 @@ const InventoryPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [catsRes, deptsRes, itemsRes] = await Promise.all([
+    const [catsRes, deptsRes, itemsRes, whRes, locsRes] = await Promise.all([
       supabase.from("inventory_categories").select("*").order("name"),
       supabase.from("departments").select("id, name, description").order("name"),
       supabase.from("inventory_items").select("*").order("code"),
+      supabase.from("warehouses").select("*").order("name"),
+      supabase.from("inventory_locations").select("*").order("name"),
     ]);
     if (catsRes.data) setCategories(catsRes.data as InventoryCategory[]);
     if (deptsRes.data) setDepartments(deptsRes.data);
+    if (whRes.data) setWarehouses(whRes.data.map((w: any) => ({ id: w.id, name: w.name, code: w.code, address: w.address || "", locations: [] })));
+    if (locsRes.data) setLocations(locsRes.data.map((l: any) => ({ id: l.id, name: l.name })));
     if (itemsRes.data) {
       setProducts(itemsRes.data.map((row: any) => ({
         id: row.id,
@@ -292,25 +296,33 @@ const InventoryPage = () => {
   };
 
   // Warehouse CRUD
-  const handleSaveWarehouse = () => {
+  const handleSaveWarehouse = async () => {
     if (!whForm.name || !whForm.code) { toast.error("Preencha nome e código."); return; }
-    if (editingWhId) {
-      setWarehouses(prev => prev.map(w => w.id === editingWhId ? { ...w, name: whForm.name, code: whForm.code, address: whForm.address } : w));
-      toast.success("Armazém atualizado.");
-    } else {
-      setWarehouses(prev => [...prev, { id: `w${Date.now()}`, ...whForm, locations: [] }]);
-      toast.success("Armazém criado.");
+    try {
+      if (editingWhId) {
+        const { error } = await supabase.from("warehouses").update({ name: whForm.name, code: whForm.code, address: whForm.address }).eq("id", editingWhId);
+        if (error) throw error;
+        toast.success("Armazém atualizado.");
+      } else {
+        const { error } = await supabase.from("warehouses").insert({ name: whForm.name, code: whForm.code, address: whForm.address });
+        if (error) throw error;
+        toast.success("Armazém criado.");
+      }
+      setWhDialogOpen(false);
+      setWhForm({ name: "", code: "", address: "" });
+      setEditingWhId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message);
     }
-    setWhDialogOpen(false);
-    setWhForm({ name: "", code: "", address: "" });
-    setEditingWhId(null);
   };
 
-  const deleteWarehouse = (id: string) => {
-    setWarehouses(prev => prev.filter(w => w.id !== id));
-    setLocations(prev => prev.filter(l => l.warehouseId !== id));
+  const deleteWarehouse = async (id: string) => {
+    const { error } = await supabase.from("warehouses").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
     setDeleteWhId(null);
     toast.success("Armazém eliminado.");
+    fetchData();
   };
 
   const downloadTemplate = () => {
@@ -798,12 +810,14 @@ const InventoryPage = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setLocDialogOpen(false)}>Cancelar</Button>
-                  <Button onClick={() => {
+                  <Button onClick={async () => {
                     if (!locForm.name.trim()) { toast.error("Preencha o nome."); return; }
-                    setLocations(prev => [...prev, { id: `loc_${Date.now()}`, name: locForm.name, warehouseId: "", zone: "", capacity: 0, currentOccupancy: 0 }]);
+                    const { error } = await supabase.from("inventory_locations").insert({ name: locForm.name });
+                    if (error) { toast.error(error.message); return; }
                     setLocDialogOpen(false);
                     setLocForm({ name: "" });
                     toast.success("Localização criada.");
+                    fetchData();
                   }}>Criar</Button>
                 </div>
               </div>
@@ -818,7 +832,7 @@ const InventoryPage = () => {
               </AlertDialogHeader>
               <div className="flex justify-end gap-2">
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => { if (deleteLocId) { setLocations(prev => prev.filter(l => l.id !== deleteLocId)); setDeleteLocId(null); toast.success("Localização eliminada."); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                <AlertDialogAction onClick={async () => { if (deleteLocId) { const { error } = await supabase.from("inventory_locations").delete().eq("id", deleteLocId); if (error) { toast.error(error.message); } else { toast.success("Localização eliminada."); fetchData(); } setDeleteLocId(null); } }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
               </div>
             </AlertDialogContent>
           </AlertDialog>
