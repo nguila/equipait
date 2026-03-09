@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { departments as mockDepartments, stockRequests as initialRequests, warehouses as initialWarehouses, warehouseLocations as initialLocations, type InventoryItem, type StockRequest, type Warehouse, type WarehouseLocation } from "@/data/mockData";
+// Local types - no longer using mockData
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
