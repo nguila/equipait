@@ -169,11 +169,11 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-foreground flex items-center gap-1.5">
-          <ImagePlus className="h-4 w-4 text-muted-foreground" />
-          Imagens ({images.length})
-        </h4>
+      <h4 className="text-sm font-medium text-foreground flex items-center gap-1.5">
+        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+        Imagens ({images.length})
+      </h4>
+
       {!readOnly && (
         <div
           onDragOver={handleDragOver}
@@ -212,7 +212,8 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
       {images.length === 0 && readOnly && (
         <p className="text-xs text-muted-foreground italic">Sem imagens anexadas</p>
       )}
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+
+      {images.length > 0 && (
           {images.map((img) => (
             <div key={img.id} className="group relative rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square">
               {imageUrls[img.id] ? (
