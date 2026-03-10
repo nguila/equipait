@@ -368,33 +368,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-border/40 relative overflow-hidden py-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-sidebar to-sidebar-accent" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)',
-          backgroundSize: '40px 40px'
-        }} />
-        <div className="absolute top-0 right-0 h-[300px] w-[400px] rounded-full bg-primary/10 blur-[100px]" />
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-bold text-sidebar-foreground sm:text-4xl">
-            Pronto para transformar o suporte da sua equipa?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sidebar-foreground/70 text-lg">
-            Junte-se às equipas de TI que já utilizam o TI Data CoLAB para resolver incidentes
-            mais rápido e com maior controlo.
-          </p>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="mt-8 h-13 px-8 text-base font-semibold shadow-xl"
-            onClick={() => navigate("/auth")}
-          >
-            Começar Gratuitamente
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border/40 bg-card/50 backdrop-blur-sm py-10">
