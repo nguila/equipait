@@ -63,12 +63,12 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
     if (entityId) fetchImages();
   }, [entityId]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !user) return;
+  const processFiles = async (files: File[]) => {
+    if (!user) return;
     setUploading(true);
 
     try {
-      for (const file of Array.from(e.target.files)) {
+      for (const file of files) {
         if (!IMAGE_TYPES.includes(file.type)) {
           toast.error(`${file.name} não é uma imagem válida`);
           continue;
@@ -108,6 +108,35 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    await processFiles(Array.from(e.target.files));
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    if (files.length === 0) {
+      toast.error("Nenhuma imagem detectada");
+      return;
+    }
+    await processFiles(files);
+  }, [user, entityId]);
 
   const handleDelete = async (img: ImageAttachment) => {
     if (!confirm("Eliminar esta imagem?")) return;
