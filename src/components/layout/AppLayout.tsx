@@ -4,11 +4,11 @@ import TopBar from "./TopBar";
 
 const AppLayout = () => {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background bg-mesh">
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>
