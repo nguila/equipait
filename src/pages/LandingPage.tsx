@@ -229,9 +229,9 @@ const LandingPage = () => {
               <p className="mt-4 text-lg text-muted-foreground">
                 Construído especificamente para equipas de suporte técnico que precisam de resultados.
               </p>
-              <div className="mt-10 space-y-8">
+              <div ref={benefitsRef} className="mt-10 space-y-8">
                 {benefits.map((benefit) => (
-                  <div key={benefit.title} className="flex gap-4 group">
+                  <div key={benefit.title} data-stagger className="flex gap-4 group opacity-0">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary transition-all group-hover:from-primary group-hover:to-accent group-hover:text-primary-foreground group-hover:shadow-lg">
                       <benefit.icon className="h-5 w-5" />
                     </div>
