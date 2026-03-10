@@ -1,4 +1,4 @@
-import { statusLabels, statusColors } from "@/data/mockData";
+import { statusLabels, statusColors } from "@/data/statusConstants";
 
 interface StatusBadgeProps {
   status: string;
