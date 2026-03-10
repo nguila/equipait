@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import {
   Headphones,
   ArrowRight,
@@ -14,6 +15,29 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+function useStaggerReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.querySelectorAll("[data-stagger]").forEach((child, i) => {
+            (child as HTMLElement).style.animationDelay = `${i * 100}ms`;
+            child.classList.add("animate-stagger-in");
+          });
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 const features = [
   {
@@ -74,7 +98,8 @@ const benefits = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
-
+  const featuresRef = useStaggerReveal();
+  const benefitsRef = useStaggerReveal();
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -113,8 +138,8 @@ const LandingPage = () => {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[500px] rounded-full bg-accent/5 blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-primary/5 blur-[120px] animate-hero-glow" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[500px] rounded-full bg-accent/5 blur-[100px] animate-hero-glow" style={{ animationDelay: '2s' }} />
         <div className="absolute inset-0 opacity-[0.015]" style={{
           backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
@@ -172,12 +197,12 @@ const LandingPage = () => {
               Módulos especializados que trabalham em conjunto para uma resolução eficiente de incidentes.
             </p>
           </div>
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, idx) => (
+          <div ref={featuresRef} className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20"
-                style={{ animationDelay: `${idx * 80}ms` }}
+                data-stagger
+                className="group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 opacity-0"
               >
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary transition-all duration-300 group-hover:from-primary group-hover:to-accent group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/25">
                   <feature.icon className="h-6 w-6" />
@@ -204,9 +229,9 @@ const LandingPage = () => {
               <p className="mt-4 text-lg text-muted-foreground">
                 Construído especificamente para equipas de suporte técnico que precisam de resultados.
               </p>
-              <div className="mt-10 space-y-8">
+              <div ref={benefitsRef} className="mt-10 space-y-8">
                 {benefits.map((benefit) => (
-                  <div key={benefit.title} className="flex gap-4 group">
+                  <div key={benefit.title} data-stagger className="flex gap-4 group opacity-0">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary transition-all group-hover:from-primary group-hover:to-accent group-hover:text-primary-foreground group-hover:shadow-lg">
                       <benefit.icon className="h-5 w-5" />
                     </div>
