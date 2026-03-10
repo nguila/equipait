@@ -174,33 +174,44 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
           <ImagePlus className="h-4 w-4 text-muted-foreground" />
           Imagens ({images.length})
         </h4>
-        {!readOnly && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleUpload}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
-              {uploading ? "A carregar..." : "Adicionar"}
-            </Button>
-          </>
-        )}
-      </div>
+      {!readOnly && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-primary bg-primary/10"
+              : "border-border hover:border-primary/50 hover:bg-muted/50"
+          }`}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleUpload}
+          />
+          {uploading ? (
+            <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="text-xs">A carregar...</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+              <Upload className="h-6 w-6" />
+              <span className="text-xs">Arraste imagens aqui ou clique para selecionar</span>
+              <span className="text-[10px]">JPEG, PNG, GIF, WebP, SVG (máx. 5MB)</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {images.length === 0 ? (
+      {images.length === 0 && readOnly && (
         <p className="text-xs text-muted-foreground italic">Sem imagens anexadas</p>
-      ) : (
+      )}
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {images.map((img) => (
             <div key={img.id} className="group relative rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square">
