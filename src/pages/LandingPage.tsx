@@ -3,9 +3,7 @@ import {
   Headphones,
   ArrowRight,
   CheckCircle2,
-  Zap,
   Shield,
-  Globe,
   BarChart3,
   Users,
   Clock,
@@ -13,11 +11,9 @@ import {
   Layers,
   FileText,
   Monitor,
-  Upload,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 const features = [
   {
@@ -78,15 +74,6 @@ const benefits = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setLogoUrl(url);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,13 +81,9 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-card/70 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
           <div className="flex items-center gap-3">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-9 w-9 rounded-xl object-contain" />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg">
-                <Headphones className="h-5 w-5 text-primary-foreground" />
-              </div>
-            )}
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg">
+              <Headphones className="h-5 w-5 text-primary-foreground" />
+            </div>
             <div className="flex flex-col">
               <span className="text-base font-bold tracking-tight text-foreground leading-tight">
                 TI Data CoLAB
@@ -129,151 +112,49 @@ const LandingPage = () => {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Background effects */}
         <div className="absolute inset-0 bg-mesh" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute bottom-0 right-0 h-[400px] w-[500px] rounded-full bg-accent/5 blur-[100px]" />
-        
-        {/* Grid pattern */}
         <div className="absolute inset-0 opacity-[0.015]" style={{
           backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }} />
 
-        <div className="relative mx-auto max-w-7xl px-6 py-24 lg:py-32">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-            <div className="animate-slide-up">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-                <Sparkles className="h-3.5 w-3.5" />
-                IT Service Management Platform
-              </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem] leading-[1.08]">
-                Suporte técnico{" "}
-                <span className="text-gradient">
-                  inteligente
-                </span>{" "}
-                para a sua equipa de TI
-              </h1>
-              <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-lg">
-                Centralize tickets, documente soluções e monitorize o desempenho da equipa.
-                Tudo numa plataforma pensada para departamentos de TI.
-              </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="lg"
-                  className="h-13 px-8 text-base bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg shadow-primary/25 transition-all duration-300"
-                  onClick={() => navigate("/auth")}
-                >
-                  Começar Agora
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-13 px-8 text-base border-border/60 hover:bg-secondary/50"
-                  onClick={() => {
-                    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  Ver Funcionalidades
-                </Button>
-              </div>
+        <div className="relative mx-auto max-w-4xl px-6 py-28 lg:py-36 text-center">
+          <div className="animate-slide-up">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              IT Service Management Platform
             </div>
-
-            {/* Hero Visual */}
-            <div className="relative hidden lg:block animate-fade-in">
-              <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-6 shadow-2xl shadow-primary/5">
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="h-3 w-3 rounded-full bg-destructive/70" />
-                  <div className="h-3 w-3 rounded-full bg-warning/70" />
-                  <div className="h-3 w-3 rounded-full bg-accent/70" />
-                  <span className="ml-2 text-xs text-muted-foreground font-mono-tech">dashboard — live</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  {[
-                    { label: "Abertos", value: "12", color: "from-warning/20 to-warning/5 text-warning" },
-                    { label: "Em Curso", value: "8", color: "from-primary/20 to-primary/5 text-primary" },
-                    { label: "Resolvidos", value: "47", color: "from-accent/20 to-accent/5 text-accent" },
-                  ].map((s) => (
-                    <div key={s.label} className={`rounded-xl bg-gradient-to-br ${s.color} p-3 border border-border/20`}>
-                      <p className="text-2xl font-bold">{s.value}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  {["Erro no servidor de email", "VPN não conecta", "Pedido de licença Office"].map((t, i) => (
-                    <div key={t} className="flex items-center justify-between rounded-lg bg-secondary/30 backdrop-blur-sm px-3 py-2.5 border border-border/20">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-[10px] font-mono-tech text-muted-foreground">#{100 + i}</span>
-                        <span className="text-xs font-medium text-card-foreground">{t}</span>
-                      </div>
-                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                        i === 0 ? "bg-destructive/15 text-destructive" : i === 1 ? "bg-warning/15 text-warning" : "bg-accent/15 text-accent"
-                      }`}>
-                        {i === 0 ? "Alta" : i === 1 ? "Média" : "Baixa"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 rounded-xl border border-border/40 bg-card/80 backdrop-blur-xl p-3.5 shadow-xl">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-accent/5">
-                    <CheckCircle2 className="h-4.5 w-4.5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-card-foreground">98.5% SLA</p>
-                    <p className="text-[10px] text-muted-foreground">Taxa de cumprimento</p>
-                  </div>
-                </div>
-              </div>
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem] leading-[1.08]">
+              Suporte técnico{" "}
+              <span className="text-gradient">inteligente</span>{" "}
+              para a sua equipa de TI
+            </h1>
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              Centralize tickets, documente soluções e monitorize o desempenho da equipa.
+              Tudo numa plataforma pensada para departamentos de TI.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row justify-center">
+              <Button
+                size="lg"
+                className="h-13 px-8 text-base bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg shadow-primary/25 transition-all duration-300"
+                onClick={() => navigate("/auth")}
+              >
+                Aceder ao Portal
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-13 px-8 text-base border-border/60 hover:bg-secondary/50"
+                onClick={() => {
+                  document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Ver Funcionalidades
+              </Button>
             </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mx-auto mt-20 grid max-w-4xl grid-cols-2 gap-8 sm:grid-cols-4">
-            {[
-              { value: "99.9%", label: "Uptime" },
-              { value: "<2h", label: "Tempo Médio Resposta" },
-              { value: "24/7", label: "Disponibilidade" },
-              { value: "100%", label: "Em Português" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center group">
-                <div className="text-3xl font-bold text-gradient">{stat.value}</div>
-                <div className="mt-1.5 text-sm text-muted-foreground font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Logo Upload */}
-      <section className="border-t border-border/40 bg-secondary/20 py-8 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <span className="text-sm text-muted-foreground font-medium">Personalizar logótipo:</span>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-primary/30 bg-card/50 backdrop-blur-sm px-4 py-2 text-sm text-primary transition-all hover:bg-primary/5 hover:border-primary/50">
-              <Upload className="h-4 w-4" />
-              Carregar Logótipo
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleLogoUpload}
-              />
-            </label>
-            {logoUrl && (
-              <div className="flex items-center gap-2">
-                <img src={logoUrl} alt="Preview" className="h-8 w-8 rounded-lg object-contain" />
-                <button
-                  onClick={() => setLogoUrl(null)}
-                  className="text-xs text-destructive hover:underline"
-                >
-                  Remover
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -368,18 +249,13 @@ const LandingPage = () => {
         </div>
       </section>
 
-
       {/* Footer */}
       <footer className="border-t border-border/40 bg-card/50 backdrop-blur-sm py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2.5">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-5 w-5 rounded object-contain" />
-            ) : (
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-                <Headphones className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-            )}
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
+              <Headphones className="h-3.5 w-3.5 text-primary-foreground" />
+            </div>
             <span className="text-sm font-semibold text-foreground">TI Data CoLAB</span>
             <span className="text-xs text-muted-foreground font-mono-tech">— SERVICE DESK</span>
           </div>
