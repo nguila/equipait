@@ -30,6 +30,7 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const fetchImages = async () => {
     setLoading(true);
