@@ -217,62 +217,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="py-24 lg:py-32 border-t border-border/40">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid items-center gap-16 lg:grid-cols-2">
-            <div>
-              <p className="text-sm font-semibold text-accent uppercase tracking-wider font-mono-tech mb-3">Vantagens</p>
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Porquê o TI Data CoLAB?
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Construído especificamente para equipas de suporte técnico que precisam de resultados.
-              </p>
-              <div ref={benefitsRef} className="mt-10 space-y-8">
-                {benefits.map((benefit) => (
-                  <div key={benefit.title} data-stagger className="flex gap-4 group opacity-0">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary transition-all group-hover:from-primary group-hover:to-accent group-hover:text-primary-foreground group-hover:shadow-lg">
-                      <benefit.icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{benefit.title}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{benefit.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-8 shadow-xl shadow-primary/5">
-              <h3 className="text-xl font-bold text-card-foreground">A plataforma inclui:</h3>
-              <ul className="mt-6 space-y-4">
-                {[
-                  "Dashboard com KPIs e notificações em tempo real",
-                  "Sistema de tickets com SLAs e priorização",
-                  "Base de conhecimento com documentação técnica",
-                  "Gestão de equipamentos e inventário TI",
-                  "Relatórios de desempenho com export Excel/PDF",
-                  "Controlo de acessos e permissões granulares",
-                  "Comentários e histórico por ticket",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-                    <span className="text-sm text-card-foreground">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="mt-8 w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg shadow-primary/20"
-                size="lg"
-                onClick={() => navigate("/auth")}
-              >
-                Aceder ao Service Desk
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border/40 bg-card/50 backdrop-blur-sm py-10">
