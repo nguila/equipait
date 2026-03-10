@@ -74,23 +74,6 @@ const features = [
   },
 ];
 
-const benefits = [
-  {
-    icon: Clock,
-    title: "Resolução 3x mais rápida",
-    description: "SLAs automáticos e priorização inteligente reduzem o tempo de resposta.",
-  },
-  {
-    icon: Shield,
-    title: "Segurança de nível empresarial",
-    description: "Permissões granulares por módulo, RLS e controlo de acessos por função.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Comunicação centralizada",
-    description: "Comentários em tickets, notificações em tempo real e histórico completo.",
-  },
-];
 
 const LandingPage = () => {
   const navigate = useNavigate();
