@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, User } from "lucide-react";
+import { Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, User, ImageIcon } from "lucide-react";
+import ImageAttachments from "@/components/shared/ImageAttachments";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
 import OrdersTable from "@/components/inventory/OrdersTable";
@@ -106,6 +107,7 @@ const InventoryPage = () => {
   const [locDialogOpen, setLocDialogOpen] = useState(false);
   const [locForm, setLocForm] = useState({ name: "" });
   const [deleteLocId, setDeleteLocId] = useState<string | null>(null);
+  const [imageItemId, setImageItemId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -522,6 +524,13 @@ const InventoryPage = () => {
                       <td className="px-5 py-3.5 flex items-center gap-1">
                         <ProductFormDialog editItem={item} onEdit={handleEditProduct} categories={categoryNames} departments={departments} />
                         <button
+                          onClick={() => setImageItemId(item.id)}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-muted"
+                          title="Imagens"
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => setDeleteId(item.id)}
                           className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                         >
@@ -913,6 +922,21 @@ const InventoryPage = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* IMAGES DIALOG */}
+      <Dialog open={!!imageItemId} onOpenChange={(open) => !open && setImageItemId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Imagens do Produto
+            </DialogTitle>
+          </DialogHeader>
+          {imageItemId && (
+            <ImageAttachments entityId={imageItemId} entityType="inventory" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

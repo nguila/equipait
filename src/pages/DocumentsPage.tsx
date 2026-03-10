@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileText, Plus, Upload, Paperclip, Download, Loader2, Trash2, BookOpen, Tags, Pencil } from "lucide-react";
+import { FileText, Plus, Upload, Paperclip, Download, Loader2, Trash2, BookOpen, Tags, Pencil, ImageIcon } from "lucide-react";
 import ImportExportBar from "@/components/shared/ImportExportBar";
+import ImageAttachments from "@/components/shared/ImageAttachments";
 
 interface Doc {
   id: string;
@@ -584,6 +585,13 @@ const DocumentsPage = () => {
                 </div>
               ))}
             </div>
+
+            {/* Images section - only for existing documents */}
+            {editingDoc && (
+              <div className="space-y-1.5">
+                <ImageAttachments entityId={editingDoc.id} entityType="document" />
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label>Anexos</Label>

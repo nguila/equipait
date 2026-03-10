@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Send, Clock, MessageSquare, Pencil, Trash2, X, Check } from "lucide-react";
+import ImageAttachments from "@/components/shared/ImageAttachments";
 
 interface Comment {
   id: string;
@@ -175,6 +176,9 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
             ))}
           </div>
         )}
+
+        {/* Images Section */}
+        <ImageAttachments entityId={ticket.id} entityType="ticket" />
 
         <Separator />
 
