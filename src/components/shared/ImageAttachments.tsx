@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Trash2, Loader2, Download, X, ZoomIn } from "lucide-react";
+import { ImagePlus, Trash2, Loader2, Download, X, ZoomIn, Upload } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ImageAttachment {
