@@ -177,6 +177,9 @@ const TicketDetailDialog = ({ open, onOpenChange, ticket, profiles }: TicketDeta
           </div>
         )}
 
+        {/* Images Section */}
+        <ImageAttachments entityId={ticket.id} entityType="ticket" />
+
         <Separator />
 
         {/* Comments Section */}
