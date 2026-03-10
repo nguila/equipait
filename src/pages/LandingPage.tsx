@@ -197,12 +197,12 @@ const LandingPage = () => {
               Módulos especializados que trabalham em conjunto para uma resolução eficiente de incidentes.
             </p>
           </div>
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, idx) => (
+          <div ref={featuresRef} className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20"
-                style={{ animationDelay: `${idx * 80}ms` }}
+                data-stagger
+                className="group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 opacity-0"
               >
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-accent/10 text-primary transition-all duration-300 group-hover:from-primary group-hover:to-accent group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/25">
                   <feature.icon className="h-6 w-6" />
