@@ -586,6 +586,13 @@ const DocumentsPage = () => {
               ))}
             </div>
 
+            {/* Images section - only for existing documents */}
+            {editingDoc && (
+              <div className="space-y-1.5">
+                <ImageAttachments entityId={editingDoc.id} entityType="document" />
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>Anexos</Label>
               <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files) setFiles((prev) => [...prev, ...Array.from(e.target.files!)]); }} />
