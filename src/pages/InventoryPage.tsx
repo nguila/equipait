@@ -922,6 +922,21 @@ const InventoryPage = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* IMAGES DIALOG */}
+      <Dialog open={!!imageItemId} onOpenChange={(open) => !open && setImageItemId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Imagens do Produto
+            </DialogTitle>
+          </DialogHeader>
+          {imageItemId && (
+            <ImageAttachments entityId={imageItemId} entityType="inventory" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
