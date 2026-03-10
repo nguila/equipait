@@ -3,12 +3,8 @@ import { useEffect, useRef } from "react";
 import {
   Headphones,
   ArrowRight,
-  CheckCircle2,
-  Shield,
   BarChart3,
   Users,
-  Clock,
-  MessageSquare,
   Layers,
   FileText,
   Monitor,
