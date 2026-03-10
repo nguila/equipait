@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Trash2, Loader2, Download, X, ZoomIn } from "lucide-react";
+import { ImagePlus, Trash2, Loader2, Download, X, ZoomIn, Upload } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ImageAttachment {
@@ -30,6 +30,7 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const fetchImages = async () => {
     setLoading(true);
@@ -62,12 +63,12 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
     if (entityId) fetchImages();
   }, [entityId]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !user) return;
+  const processFiles = async (files: File[]) => {
+    if (!user) return;
     setUploading(true);
 
     try {
-      for (const file of Array.from(e.target.files)) {
+      for (const file of files) {
         if (!IMAGE_TYPES.includes(file.type)) {
           toast.error(`${file.name} não é uma imagem válida`);
           continue;
@@ -108,6 +109,35 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
     }
   };
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    await processFiles(Array.from(e.target.files));
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    if (files.length === 0) {
+      toast.error("Nenhuma imagem detectada");
+      return;
+    }
+    await processFiles(files);
+  }, [user, entityId]);
+
   const handleDelete = async (img: ImageAttachment) => {
     if (!confirm("Eliminar esta imagem?")) return;
     try {
@@ -139,38 +169,51 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-foreground flex items-center gap-1.5">
-          <ImagePlus className="h-4 w-4 text-muted-foreground" />
-          Imagens ({images.length})
-        </h4>
-        {!readOnly && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleUpload}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
-              {uploading ? "A carregar..." : "Adicionar"}
-            </Button>
-          </>
-        )}
-      </div>
+      <h4 className="text-sm font-medium text-foreground flex items-center gap-1.5">
+        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+        Imagens ({images.length})
+      </h4>
 
-      {images.length === 0 ? (
+      {!readOnly && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-primary bg-primary/10"
+              : "border-border hover:border-primary/50 hover:bg-muted/50"
+          }`}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleUpload}
+          />
+          {uploading ? (
+            <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="text-xs">A carregar...</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+              <Upload className="h-6 w-6" />
+              <span className="text-xs">Arraste imagens aqui ou clique para selecionar</span>
+              <span className="text-[10px]">JPEG, PNG, GIF, WebP, SVG (máx. 5MB)</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {images.length === 0 && readOnly && (
         <p className="text-xs text-muted-foreground italic">Sem imagens anexadas</p>
-      ) : (
+      )}
+
+      {images.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {images.map((img) => (
             <div key={img.id} className="group relative rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square">
