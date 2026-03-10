@@ -214,6 +214,7 @@ const ImageAttachments = ({ entityId, entityType, readOnly = false }: ImageAttac
       )}
 
       {images.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {images.map((img) => (
             <div key={img.id} className="group relative rounded-lg overflow-hidden border border-border bg-muted/30 aspect-square">
               {imageUrls[img.id] ? (
