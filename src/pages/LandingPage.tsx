@@ -78,7 +78,6 @@ const features = [
 const LandingPage = () => {
   const navigate = useNavigate();
   const featuresRef = useStaggerReveal();
-  const benefitsRef = useStaggerReveal();
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
