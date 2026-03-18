@@ -9,6 +9,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Truck,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -23,12 +25,18 @@ const navItems = [
   { icon: Settings, label: "Administração", path: "/administracao" },
 ];
 
+const secondaryNavItems = [
+  { icon: Truck, label: "Fornecedores", path: "/fornecedores" },
+  { icon: Users, label: "Contactos", path: "/contactos" },
+];
+
 const AppSidebar = () => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { hasAccess } = useUserRole();
 
   const filteredNavItems = navItems.filter((item) => hasAccess(item.path));
+  const filteredSecondaryItems = secondaryNavItems.filter((item) => hasAccess(item.path));
 
   return (
     <aside
@@ -87,6 +95,39 @@ const AppSidebar = () => {
             </Link>
           );
         })}
+
+        {/* Separator */}
+        {filteredSecondaryItems.length > 0 && (
+          <>
+            <div className={`my-3 mx-3 border-t border-sidebar-border/30`} />
+            <p className={`mb-3 px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted ${collapsed ? "hidden" : ""}`}>
+              Gestão
+            </p>
+            {filteredSecondaryItems.map((item) => {
+              const isActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-gradient-to-r from-primary/20 to-accent/10 text-primary-foreground shadow-sm border border-primary/20"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
+                  } ${collapsed ? "justify-center" : ""}`}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+                  )}
+                  <item.icon className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive ? "text-primary" : "group-hover:text-primary"}`} />
+                  {!collapsed && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* Collapse Button */}
