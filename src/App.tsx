@@ -17,7 +17,8 @@ import InventoryPage from "@/pages/InventoryPage";
 
 import HelpdeskPage from "@/pages/HelpdeskPage";
 import DocumentsPage from "@/pages/DocumentsPage";
-
+import FornecedoresPage from "@/pages/FornecedoresPage";
+import ContactosPage from "@/pages/ContactosPage";
 import AdminPage from "@/pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
