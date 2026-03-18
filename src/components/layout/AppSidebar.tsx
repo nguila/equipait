@@ -36,6 +36,7 @@ const AppSidebar = () => {
   const { hasAccess } = useUserRole();
 
   const filteredNavItems = navItems.filter((item) => hasAccess(item.path));
+  const filteredSecondaryItems = secondaryNavItems.filter((item) => hasAccess(item.path));
 
   return (
     <aside
