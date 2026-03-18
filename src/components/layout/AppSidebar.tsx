@@ -9,6 +9,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Truck,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -21,6 +23,11 @@ const navItems = [
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
   { icon: Settings, label: "Administração", path: "/administracao" },
+];
+
+const secondaryNavItems = [
+  { icon: Truck, label: "Fornecedores", path: "/fornecedores" },
+  { icon: Users, label: "Contactos", path: "/contactos" },
 ];
 
 const AppSidebar = () => {
