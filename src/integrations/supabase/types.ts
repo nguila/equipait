@@ -580,6 +580,57 @@ export type Database = {
         }
         Relationships: []
       }
+      suppliers: {
+        Row: {
+          address: string | null
+          category: string
+          contact_person: string | null
+          created_at: string
+          created_by: string
+          email: string | null
+          id: string
+          name: string
+          nif: string | null
+          notes: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string
+          contact_person?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
+          id?: string
+          name: string
+          nif?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          id?: string
+          name?: string
+          nif?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       task_dependencies: {
         Row: {
           created_at: string
