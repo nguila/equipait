@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,50 +7,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 
+interface InventoryItem {
+  id?: string;
+  code?: string;
+  name: string;
+  serialNumber?: string;
+  category: string;
+  location?: string;
+  warehouseId?: string;
+  locationId?: string;
+  departmentId?: string;
+  userName?: string;
+  status?: string;
+}
+
 interface Props {
-  onAdd?: (item: any) => void;
-  onEdit?: (item: any) => void;
-  editItem?: any;
+  onAdd?: (item: InventoryItem) => void;
+  onEdit?: (item: InventoryItem) => void;
+  editItem?: InventoryItem;
   categories?: string[];
   departments?: { id: string; name: string }[];
   warehouses?: { id: string; name: string }[];
   locations?: { id: string; name: string; warehouseId?: string }[];
 }
 
+const emptyForm = { name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" };
+
 const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories, departments: propDepartments, warehouses: propWarehouses, locations: propLocations }: Props) => {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    name: editItem?.name || "",
-    code: editItem?.code || "",
-    serialNumber: editItem?.serial_number || "",
-    category: editItem?.category || "",
-    warehouseId: editItem?.warehouse_id || "",
-    locationId: editItem?.location_id || "",
-    departmentId: editItem?.department_id || "",
-    userName: editItem?.user_name || "",
-  });
+  const [form, setForm] = useState(emptyForm);
 
   const categories = propCategories || ["Equipamento Informático", "Software", "Infraestrutura", "Equipamento Industrial", "Audiovisual", "Material de Escritório", "Outro"];
   const depts = propDepartments || [];
-  const whs = propWarehouses || [];
   const locs = propLocations || [];
-  const filteredLocations = locs.filter(l => (l as any).warehouseId === form.warehouseId);
+
+  // Sync form when dialog opens with editItem
+  useEffect(() => {
+    if (open && editItem) {
+      setForm({
+        name: editItem.name || "",
+        code: editItem.code || "",
+        serialNumber: editItem.serialNumber || "",
+        category: editItem.category || "",
+        warehouseId: editItem.warehouseId || "",
+        locationId: editItem.locationId || "",
+        departmentId: editItem.departmentId || "",
+        userName: editItem.userName || "",
+      });
+    } else if (open && !editItem) {
+      setForm(emptyForm);
+    }
+  }, [open, editItem]);
 
   const handleSubmit = () => {
     if (!form.name || !form.category) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
-    const data = {
+    const data: InventoryItem = {
       id: editItem?.id,
       code: form.code || "AUTO",
       name: form.name,
-      serial_number: form.serialNumber || null,
+      serialNumber: form.serialNumber || undefined,
       category: form.category,
-      warehouse_id: form.warehouseId || null,
-      location_id: form.locationId || null,
-      department_id: form.departmentId || null,
-      user_name: form.userName || null,
+      warehouseId: form.warehouseId || undefined,
+      locationId: form.locationId || undefined,
+      departmentId: form.departmentId || undefined,
+      userName: form.userName || "",
       status: editItem?.status || "ativo",
     };
     if (editItem && onEdit) {
@@ -59,7 +82,6 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       onAdd(data);
     }
     setOpen(false);
-    setForm({ name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" });
   };
 
   return (
