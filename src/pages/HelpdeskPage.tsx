@@ -166,6 +166,13 @@ const HelpdeskPage = () => {
     else { toast.success("Departamento eliminado"); fetchData(); }
   };
 
+  const handleDeleteTicket = async (id: string) => {
+    if (!confirm("Eliminar ticket?")) return;
+    const { error } = await supabase.from("tickets").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Ticket eliminado"); fetchData(); }
+  };
+
   // Assign technician to department
   const handleAssignTech = async () => {
     if (!techForm.user_id || !techForm.department_id) return;
@@ -218,6 +225,9 @@ const HelpdeskPage = () => {
               <div className="flex gap-1 shrink-0">
                 <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setEditingTicket(ticket); setFormOpen(true); }}>
                   <Edit className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteTicket(ticket.id); }}>
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
