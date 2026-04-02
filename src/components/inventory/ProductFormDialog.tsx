@@ -137,7 +137,19 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
           <div className="col-span-2 space-y-1.5">
             <Label>Utilizador</Label>
             <Input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} placeholder="Nome do utilizador responsável" />
-          </div>
+          {editItem && (
+            <div className="col-span-2 space-y-1.5">
+              <Label>Estado</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="inativo">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
