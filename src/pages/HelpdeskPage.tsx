@@ -166,6 +166,13 @@ const HelpdeskPage = () => {
     else { toast.success("Departamento eliminado"); fetchData(); }
   };
 
+  const handleDeleteTicket = async (id: string) => {
+    if (!confirm("Eliminar ticket?")) return;
+    const { error } = await supabase.from("tickets").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Ticket eliminado"); fetchData(); }
+  };
+
   // Assign technician to department
   const handleAssignTech = async () => {
     if (!techForm.user_id || !techForm.department_id) return;
