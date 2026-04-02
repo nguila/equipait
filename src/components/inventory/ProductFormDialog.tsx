@@ -53,6 +53,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
         locationId: editItem.locationId || "",
         departmentId: editItem.departmentId || "",
         userName: editItem.userName || "",
+        status: editItem.status || "ativo",
       });
     } else if (open && !editItem) {
       setForm(emptyForm);
