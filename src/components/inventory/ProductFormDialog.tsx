@@ -31,7 +31,7 @@ interface Props {
   locations?: { id: string; name: string; warehouseId?: string }[];
 }
 
-const emptyForm = { name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "" };
+const emptyForm = { name: "", code: "", serialNumber: "", category: "", warehouseId: "", locationId: "", departmentId: "", userName: "", status: "ativo" };
 
 const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories, departments: propDepartments, warehouses: propWarehouses, locations: propLocations }: Props) => {
   const [open, setOpen] = useState(false);

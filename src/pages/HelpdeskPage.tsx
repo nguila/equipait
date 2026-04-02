@@ -219,6 +219,9 @@ const HelpdeskPage = () => {
                 <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setEditingTicket(ticket); setFormOpen(true); }}>
                   <Edit className="h-4 w-4" />
                 </Button>
+                <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteTicket(ticket.id); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </CardContent>
