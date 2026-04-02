@@ -75,7 +75,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       locationId: form.locationId || undefined,
       departmentId: form.departmentId || undefined,
       userName: form.userName || "",
-      status: editItem?.status || "ativo",
+      status: form.status || "ativo",
     };
     if (editItem && onEdit) {
       onEdit(data);
