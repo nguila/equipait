@@ -71,6 +71,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       name: form.name,
       serialNumber: form.serialNumber || undefined,
       category: form.category,
+      location: form.locationId ? (locs.find(l => l.id === form.locationId)?.name || "") : "",
       warehouseId: form.warehouseId || undefined,
       locationId: form.locationId || undefined,
       departmentId: form.departmentId || undefined,
