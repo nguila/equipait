@@ -469,7 +469,7 @@ const InventoryPage = () => {
               <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadTemplate}>
                 <Download className="h-4 w-4" /> Template
               </Button>
-              <ProductFormDialog onAdd={handleAddProduct} categories={categoryNames} departments={departments} />
+              <ProductFormDialog onAdd={handleAddProduct} categories={categoryNames} departments={departments} warehouses={warehouses} locations={locations} />
             </div>
           </div>
 

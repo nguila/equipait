@@ -135,6 +135,13 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
               <SelectContent>{depts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label>Localização</Label>
+            <Select value={form.locationId} onValueChange={v => setForm(f => ({ ...f, locationId: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{locs.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <div className="col-span-2 space-y-1.5">
             <Label>Utilizador</Label>
             <Input value={form.userName} onChange={e => setForm(f => ({ ...f, userName: e.target.value }))} placeholder="Nome do utilizador responsável" />
