@@ -71,6 +71,7 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       name: form.name,
       serialNumber: form.serialNumber || undefined,
       category: form.category,
+      location: form.locationId ? (locs.find(l => l.id === form.locationId)?.name || "") : "",
       warehouseId: form.warehouseId || undefined,
       locationId: form.locationId || undefined,
       departmentId: form.departmentId || undefined,
@@ -132,6 +133,13 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
             <Select value={form.departmentId} onValueChange={v => setForm(f => ({ ...f, departmentId: v }))}>
               <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
               <SelectContent>{depts.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Localização</Label>
+            <Select value={form.locationId} onValueChange={v => setForm(f => ({ ...f, locationId: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+              <SelectContent>{locs.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="col-span-2 space-y-1.5">
