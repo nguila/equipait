@@ -512,7 +512,18 @@ const InventoryPage = () => {
                       <td className="px-5 py-3.5">
                         <Badge variant="secondary" className="text-xs">{item.category}</Badge>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-muted-foreground">{item.location}</td>
+                      <td className="px-5 py-3.5">
+                        {(() => {
+                          const loc = locations.find(l => l.id === item.locationId);
+                          const locName = loc?.name || item.location;
+                          return locName ? (
+                            <Badge variant="outline" className="gap-1 text-xs font-normal">
+                              <MapPin className="h-3 w-3" />
+                              {locName}
+                            </Badge>
+                          ) : <span className="text-sm text-muted-foreground">—</span>;
+                        })()}
+                      </td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground">{dept?.name || "—"}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1.5">
@@ -520,7 +531,15 @@ const InventoryPage = () => {
                           <span className="text-sm text-card-foreground">{item.userName || "—"}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5"><StatusBadge status={item.status === "ativo" ? "operacional" : "inativo"} /></td>
+                      <td className="px-5 py-3.5">
+                        <Badge className={item.status === "ativo"
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                          : "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20 hover:bg-red-500/20"
+                        } variant="outline">
+                          <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${item.status === "ativo" ? "bg-emerald-500" : "bg-red-500"}`} />
+                          {item.status === "ativo" ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </td>
                       <td className="px-5 py-3.5 flex items-center gap-1">
                         <ProductFormDialog editItem={item} onEdit={handleEditProduct} categories={categoryNames} departments={departments} />
                         <button
