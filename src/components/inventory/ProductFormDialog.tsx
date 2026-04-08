@@ -65,13 +65,14 @@ const ProductFormDialog = ({ onAdd, onEdit, editItem, categories: propCategories
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
+    const selectedLoc = form.locationId ? locs.find(l => l.id === form.locationId) : null;
     const data: InventoryItem = {
       id: editItem?.id,
       code: form.code || "AUTO",
       name: form.name,
       serialNumber: form.serialNumber || undefined,
       category: form.category,
-      location: form.locationId ? (locs.find(l => l.id === form.locationId)?.name || "") : "",
+      location: selectedLoc ? selectedLoc.name : (editItem?.location || ""),
       warehouseId: form.warehouseId || undefined,
       locationId: form.locationId || undefined,
       departmentId: form.departmentId || undefined,
