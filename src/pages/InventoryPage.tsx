@@ -540,21 +540,24 @@ const InventoryPage = () => {
                           {item.status === "ativo" ? "Ativo" : "Inativo"}
                         </Badge>
                       </td>
-                      <td className="px-5 py-3.5 flex items-center gap-1">
-                        <ProductFormDialog editItem={item} onEdit={handleEditProduct} categories={categoryNames} departments={departments} />
-                        <button
-                          onClick={() => setImageItemId(item.id)}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-muted"
-                          title="Imagens"
-                        >
-                          <ImageIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(item.id)}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1">
+                          <ProductFormDialog editItem={item} onEdit={handleEditProduct} categories={categoryNames} departments={departments} warehouses={warehouses} locations={locations} />
+                          <button
+                            onClick={() => setImageItemId(item.id)}
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-muted"
+                            title="Imagens"
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(item.id)}
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
