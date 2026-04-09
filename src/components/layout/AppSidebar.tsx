@@ -17,8 +17,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Wrench, label: "Serviços", path: "/servicos" },
-  { icon: FolderKanban, label: "Projectos", path: "/projectos" },
   { icon: Package, label: "Inventário", path: "/inventario" },
   { icon: Headphones, label: "Helpdesk", path: "/helpdesk" },
   { icon: FileText, label: "Documentos", path: "/documentos" },
@@ -27,7 +25,6 @@ const navItems = [
 
 const secondaryNavItems = [
   { icon: Truck, label: "Fornecedores", path: "/fornecedores" },
-  { icon: Users, label: "Contactos", path: "/contactos" },
 ];
 
 const AppSidebar = () => {
