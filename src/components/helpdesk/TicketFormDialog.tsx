@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Paperclip, X, Upload } from "lucide-react";
+import { Paperclip, X, Upload, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface EditingTicket {
@@ -39,12 +38,12 @@ interface TicketFormDialogProps {
   editingTicket?: EditingTicket | null;
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   "Hardware", "Software", "Rede", "Email", "Impressoras",
   "Acessos", "Telefonia", "Outro",
 ];
 
-const EQUIPMENT_TYPES = [
+const DEFAULT_EQUIPMENT_TYPES = [
   "Servidor", "Portátil", "Desktop", "Impressora", "Quadro Interativo", "Smart TV", "Outro",
 ];
 
@@ -57,7 +56,12 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [tagInput, setTagInput] = useState("");
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const [equipmentTypes, setEquipmentTypes] = useState<string[]>(DEFAULT_EQUIPMENT_TYPES);
+  const [newCategory, setNewCategory] = useState("");
+  const [newEquipment, setNewEquipment] = useState("");
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [showNewEquipment, setShowNewEquipment] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -101,16 +105,24 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     }
   }, [editingTicket, open]);
 
-  const handleAddTag = () => {
-    const tag = tagInput.trim();
-    if (tag && !form.tags.includes(tag)) {
-      setForm({ ...form, tags: [...form.tags, tag] });
-      setTagInput("");
+  const handleAddCategory = () => {
+    const cat = newCategory.trim();
+    if (cat && !categories.includes(cat)) {
+      setCategories([...categories, cat]);
+      setForm({ ...form, category: cat });
     }
+    setNewCategory("");
+    setShowNewCategory(false);
   };
 
-  const handleRemoveTag = (tag: string) => {
-    setForm({ ...form, tags: form.tags.filter((t) => t !== tag) });
+  const handleAddEquipment = () => {
+    const eq = newEquipment.trim();
+    if (eq && !equipmentTypes.includes(eq)) {
+      setEquipmentTypes([...equipmentTypes, eq]);
+      setForm({ ...form, equipment_type: eq });
+    }
+    setNewEquipment("");
+    setShowNewEquipment(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,12 +262,23 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
 
             <div className="space-y-1.5">
               <Label>Categoria</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" onClick={() => setShowNewCategory(!showNewCategory)} title="Adicionar categoria">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {showNewCategory && (
+                <div className="flex gap-2 mt-1">
+                  <Input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Nova categoria..." onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddCategory(); } }} />
+                  <Button type="button" variant="secondary" size="sm" onClick={handleAddCategory}>OK</Button>
+                </div>
+              )}
             </div>
 
             {/* Equipment & OS Section */}
@@ -264,12 +287,23 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
 
             <div className="space-y-1.5">
               <Label>Tipo de Equipamento</Label>
-              <Select value={form.equipment_type} onValueChange={(v) => setForm({ ...form, equipment_type: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar equipamento" /></SelectTrigger>
-                <SelectContent>
-                  {EQUIPMENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={form.equipment_type} onValueChange={(v) => setForm({ ...form, equipment_type: v })}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Selecionar equipamento" /></SelectTrigger>
+                  <SelectContent>
+                    {equipmentTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" onClick={() => setShowNewEquipment(!showNewEquipment)} title="Adicionar equipamento">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {showNewEquipment && (
+                <div className="flex gap-2 mt-1">
+                  <Input value={newEquipment} onChange={(e) => setNewEquipment(e.target.value)} placeholder="Novo equipamento..." onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddEquipment(); } }} />
+                  <Button type="button" variant="secondary" size="sm" onClick={handleAddEquipment}>OK</Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -329,28 +363,6 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
               </Select>
             </div>
 
-            <div className="space-y-1.5 md:col-span-2">
-              <Label>Tags</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  placeholder="Adicionar tag..."
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddTag(); } }}
-                />
-                <Button type="button" variant="outline" size="sm" onClick={handleAddTag}>Adicionar</Button>
-              </div>
-              {form.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {form.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="gap-1">
-                      {tag}
-                      <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
 
             <div className="space-y-1.5 md:col-span-2">
               <Label>Anexos</Label>
