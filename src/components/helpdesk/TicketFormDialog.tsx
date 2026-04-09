@@ -38,15 +38,6 @@ interface TicketFormDialogProps {
   editingTicket?: EditingTicket | null;
 }
 
-const DEFAULT_CATEGORIES = [
-  "Hardware", "Software", "Rede", "Email", "Impressoras",
-  "Acessos", "Telefonia", "Outro",
-];
-
-const DEFAULT_EQUIPMENT_TYPES = [
-  "Servidor", "Portátil", "Desktop", "Impressora", "Quadro Interativo", "Smart TV", "Outro",
-];
-
 const OS_OPTIONS = [
   "Windows", "Linux", "macOS", "Outro",
 ];
@@ -56,12 +47,25 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
-  const [equipmentTypes, setEquipmentTypes] = useState<string[]>(DEFAULT_EQUIPMENT_TYPES);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [equipmentTypes, setEquipmentTypes] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [newEquipment, setNewEquipment] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [showNewEquipment, setShowNewEquipment] = useState(false);
+
+  // Load categories and equipment types from DB
+  useEffect(() => {
+    const loadOptions = async () => {
+      const [catRes, eqRes] = await Promise.all([
+        supabase.from("ticket_categories").select("name").order("name"),
+        supabase.from("ticket_equipment_types").select("name").order("name"),
+      ]);
+      if (catRes.data) setCategories(catRes.data.map((r: any) => r.name));
+      if (eqRes.data) setEquipmentTypes(eqRes.data.map((r: any) => r.name));
+    };
+    if (open) loadOptions();
+  }, [open]);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -105,21 +109,31 @@ const TicketFormDialog = ({ open, onOpenChange, onCreated, departments, profiles
     }
   }, [editingTicket, open]);
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     const cat = newCategory.trim();
     if (cat && !categories.includes(cat)) {
-      setCategories([...categories, cat]);
-      setForm({ ...form, category: cat });
+      const { error } = await supabase.from("ticket_categories").insert({ name: cat } as any);
+      if (error) {
+        toast.error("Erro ao adicionar categoria: " + error.message);
+      } else {
+        setCategories([...categories, cat].sort());
+        setForm({ ...form, category: cat });
+      }
     }
     setNewCategory("");
     setShowNewCategory(false);
   };
 
-  const handleAddEquipment = () => {
+  const handleAddEquipment = async () => {
     const eq = newEquipment.trim();
     if (eq && !equipmentTypes.includes(eq)) {
-      setEquipmentTypes([...equipmentTypes, eq]);
-      setForm({ ...form, equipment_type: eq });
+      const { error } = await supabase.from("ticket_equipment_types").insert({ name: eq } as any);
+      if (error) {
+        toast.error("Erro ao adicionar equipamento: " + error.message);
+      } else {
+        setEquipmentTypes([...equipmentTypes, eq].sort());
+        setForm({ ...form, equipment_type: eq });
+      }
     }
     setNewEquipment("");
     setShowNewEquipment(false);
