@@ -670,6 +670,24 @@ export type Database = {
           },
         ]
       }
+      ticket_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       ticket_comments: {
         Row: {
           content: string
@@ -701,6 +719,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ticket_equipment_types: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       tickets: {
         Row: {
