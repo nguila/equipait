@@ -369,6 +369,13 @@ const FornecedoresPage = () => {
         loading={saving}
       />
 
+      <SupplierInvoicesDialog
+        open={!!invoicesFor}
+        onOpenChange={(o) => !o && setInvoicesFor(null)}
+        supplierId={invoicesFor?.id ?? null}
+        supplierName={invoicesFor?.name ?? ""}
+      />
+
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
