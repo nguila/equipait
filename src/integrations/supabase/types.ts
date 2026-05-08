@@ -580,6 +580,80 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_invoices: {
+        Row: {
+          atcud: string | null
+          client_name: string | null
+          client_nif: string | null
+          created_at: string
+          created_by: string
+          currency: string | null
+          description: string | null
+          due_date: string | null
+          file_path: string | null
+          id: string
+          invoice_number: string
+          issue_date: string | null
+          net_total: number | null
+          notes: string | null
+          payment_terms: string | null
+          supplier_id: string
+          total_amount: number | null
+          updated_at: string
+          vat_total: number | null
+        }
+        Insert: {
+          atcud?: string | null
+          client_name?: string | null
+          client_nif?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_path?: string | null
+          id?: string
+          invoice_number: string
+          issue_date?: string | null
+          net_total?: number | null
+          notes?: string | null
+          payment_terms?: string | null
+          supplier_id: string
+          total_amount?: number | null
+          updated_at?: string
+          vat_total?: number | null
+        }
+        Update: {
+          atcud?: string | null
+          client_name?: string | null
+          client_nif?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_path?: string | null
+          id?: string
+          invoice_number?: string
+          issue_date?: string | null
+          net_total?: number | null
+          notes?: string | null
+          payment_terms?: string | null
+          supplier_id?: string
+          total_amount?: number | null
+          updated_at?: string
+          vat_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null

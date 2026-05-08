@@ -13,6 +13,7 @@ import {
   Mail,
   Globe,
   User,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ import {
 import SupplierFormDialog, {
   type SupplierFormData,
 } from "@/components/suppliers/SupplierFormDialog";
+import SupplierInvoicesDialog from "@/components/suppliers/SupplierInvoicesDialog";
 
 interface Supplier {
   id: string;
@@ -82,6 +84,7 @@ const FornecedoresPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<SupplierFormData | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [invoicesFor, setInvoicesFor] = useState<{ id: string; name: string } | null>(null);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -316,6 +319,15 @@ const FornecedoresPage = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title="Faturas"
+                        onClick={() => setInvoicesFor({ id: s.id, name: s.name })}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
                       {canEdit("/fornecedores") && (
                         <Button
                           variant="ghost"
@@ -355,6 +367,13 @@ const FornecedoresPage = () => {
         onSubmit={handleSubmit}
         initialData={editingSupplier}
         loading={saving}
+      />
+
+      <SupplierInvoicesDialog
+        open={!!invoicesFor}
+        onOpenChange={(o) => !o && setInvoicesFor(null)}
+        supplierId={invoicesFor?.id ?? null}
+        supplierName={invoicesFor?.name ?? ""}
       />
 
       {/* Delete Confirmation */}
