@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ExtractedInvoicePreview, { PreviewField } from "./ExtractedInvoicePreview";
 
 interface Invoice {
   id: string;
