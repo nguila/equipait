@@ -523,6 +523,28 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
           </Button>
         </div>
 
+        {previewFields && (
+          <ExtractedInvoicePreview
+            fields={previewFields}
+            globalSuggestions={previewSuggestions}
+            duplicate={previewDuplicate}
+            onCancel={() => {
+              setPreviewFields(null);
+              setPendingForm(null);
+              setPreviewSuggestions([]);
+              setPreviewDuplicate(false);
+            }}
+            onConfirm={() => {
+              if (pendingForm) setForm(pendingForm);
+              setShowForm(true);
+              setPreviewFields(null);
+              setPendingForm(null);
+              setPreviewSuggestions([]);
+              setPreviewDuplicate(false);
+            }}
+          />
+        )}
+
         {showForm && (
           <div className="rounded-lg border border-border p-4 space-y-3 bg-muted/20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
