@@ -158,6 +158,10 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       setFilterTo("");
       setFilterMin("");
       setFilterMax("");
+      setPreviewFields(null);
+      setPendingForm(null);
+      setPreviewSuggestions([]);
+      setPreviewDuplicate(false);
     }
   }, [open, supplierId]);
 
