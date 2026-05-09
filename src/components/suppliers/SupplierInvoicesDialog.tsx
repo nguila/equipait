@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, Plus, Trash2, FileText, Loader2, Pencil, Save, X } from "lucide-react";
+import { Upload, Plus, Trash2, FileText, Loader2, Pencil, Save, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,50 @@ interface Props {
   supplierName: string;
 }
 
+// ---------- Normalização / Validação ----------
+
+// Aceita: "2023-12-11", "11.12.2023", "11/12/2023", "26-12-2023"
+const normalizeDate = (v: unknown): string => {
+  if (!v) return "";
+  const s = String(v).trim();
+  if (!s) return "";
+  // ISO YYYY-MM-DD
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  // DD[./-]MM[./-]YYYY
+  m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+  if (m) {
+    const d = m[1].padStart(2, "0");
+    const mo = m[2].padStart(2, "0");
+    return `${m[3]}-${mo}-${d}`;
+  }
+  return "";
+};
+
+const isValidDate = (v: string): boolean => {
+  if (!v) return true;
+  const d = new Date(v);
+  return !isNaN(d.getTime());
+};
+
+// Aceita "1 211,20", "1.211,20", "1211.20", 1211.2
+const normalizeNumber = (v: unknown): number | null => {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  let s = String(v).trim().replace(/\s/g, "").replace(/€|EUR/gi, "");
+  if (!s) return null;
+  const hasComma = s.includes(",");
+  const hasDot = s.includes(".");
+  if (hasComma && hasDot) {
+    // assume "." milhares, "," decimal
+    s = s.replace(/\./g, "").replace(",", ".");
+  } else if (hasComma) {
+    s = s.replace(",", ".");
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+};
+
 const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }: Props) => {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -73,6 +117,14 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
   const [form, setForm] = useState<typeof EMPTY>(EMPTY);
   const [showForm, setShowForm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pesquisa & filtros
+  const [search, setSearch] = useState("");
+  const [filterAtcud, setFilterAtcud] = useState("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterMin, setFilterMin] = useState("");
+  const [filterMax, setFilterMax] = useState("");
 
   const load = async () => {
     if (!supplierId) return;
@@ -93,8 +145,34 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       setShowForm(false);
       setEditingId(null);
       setForm(EMPTY);
+      setSearch("");
+      setFilterAtcud("");
+      setFilterFrom("");
+      setFilterTo("");
+      setFilterMin("");
+      setFilterMax("");
     }
   }, [open, supplierId]);
+
+  const filtered = useMemo(() => {
+    const min = normalizeNumber(filterMin);
+    const max = normalizeNumber(filterMax);
+    return invoices.filter((inv) => {
+      if (search) {
+        const q = search.toLowerCase();
+        if (!inv.invoice_number.toLowerCase().includes(q)) return false;
+      }
+      if (filterAtcud) {
+        const a = (inv.atcud || "").toLowerCase();
+        if (!a.includes(filterAtcud.toLowerCase())) return false;
+      }
+      if (filterFrom && (!inv.issue_date || inv.issue_date < filterFrom)) return false;
+      if (filterTo && (!inv.issue_date || inv.issue_date > filterTo)) return false;
+      if (min != null && (inv.total_amount == null || inv.total_amount < min)) return false;
+      if (max != null && (inv.total_amount == null || inv.total_amount > max)) return false;
+      return true;
+    });
+  }, [invoices, search, filterAtcud, filterFrom, filterTo, filterMin, filterMax]);
 
   const handleImportPdf = async (file: File) => {
     if (!supplierId) return;
@@ -116,24 +194,58 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
 
       if (error) throw error;
       const parsed = (data as any)?.data || {};
+
+      // Normalização
+      const issue_date = normalizeDate(parsed.issue_date);
+      const due_date = normalizeDate(parsed.due_date);
+      const net_total = normalizeNumber(parsed.net_total);
+      const vat_total = normalizeNumber(parsed.vat_total);
+      const total_amount = normalizeNumber(parsed.total_amount);
+      const invoice_number = (parsed.invoice_number ?? "").toString().trim();
+
+      // Validações
+      const warnings: string[] = [];
+      if (parsed.issue_date && !issue_date) warnings.push("data de emissão inválida");
+      if (parsed.due_date && !due_date) warnings.push("data de vencimento inválida");
+      if (parsed.net_total != null && net_total == null) warnings.push("total líquido inválido");
+      if (parsed.total_amount != null && total_amount == null) warnings.push("total inválido");
+
+      // Verificação de duplicados
+      if (invoice_number) {
+        const { data: dup } = await supabase
+          .from("supplier_invoices")
+          .select("id, invoice_number")
+          .eq("supplier_id", supplierId)
+          .eq("invoice_number", invoice_number)
+          .maybeSingle();
+        if (dup) {
+          toast.warning(`Já existe uma fatura com o nº ${invoice_number} para este fornecedor.`);
+        }
+      }
+
       setForm({
-        invoice_number: parsed.invoice_number ?? "",
-        atcud: parsed.atcud ?? "",
-        issue_date: parsed.issue_date ?? "",
-        due_date: parsed.due_date ?? "",
+        invoice_number,
+        atcud: (parsed.atcud ?? "").toString().trim(),
+        issue_date,
+        due_date,
         payment_terms: parsed.payment_terms ?? "",
         client_name: parsed.client_name ?? "",
         client_nif: parsed.client_nif ?? "",
-        net_total: parsed.net_total ?? null,
-        vat_total: parsed.vat_total ?? null,
-        total_amount: parsed.total_amount ?? null,
+        net_total,
+        vat_total,
+        total_amount,
         currency: parsed.currency ?? "EUR",
         description: parsed.description ?? "",
         notes: "",
       });
       setEditingId(null);
       setShowForm(true);
-      toast.success("Dados extraídos da fatura. Reveja e grave.");
+
+      if (warnings.length) {
+        toast.warning(`Dados extraídos com avisos: ${warnings.join(", ")}. Reveja antes de gravar.`);
+      } else {
+        toast.success("Dados extraídos da fatura. Reveja e grave.");
+      }
     } catch (e) {
       console.error(e);
       toast.error("Falha ao processar PDF");
@@ -145,14 +257,53 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
 
   const handleSave = async () => {
     if (!supplierId || !user) return;
-    if (!form.invoice_number.trim()) {
+    const invoice_number = form.invoice_number.trim();
+    if (!invoice_number) {
       toast.error("Número da fatura é obrigatório");
       return;
     }
+    // Validar datas
+    if (form.issue_date && !isValidDate(form.issue_date)) {
+      toast.error("Data de emissão inválida");
+      return;
+    }
+    if (form.due_date && !isValidDate(form.due_date)) {
+      toast.error("Data de vencimento inválida");
+      return;
+    }
+    if (form.issue_date && form.due_date && form.due_date < form.issue_date) {
+      toast.error("Vencimento não pode ser anterior à emissão");
+      return;
+    }
+    // Validar valores
+    for (const [k, label] of [
+      ["net_total", "Total líquido"],
+      ["vat_total", "Total IVA"],
+      ["total_amount", "Total"],
+    ] as const) {
+      const v = form[k];
+      if (v != null && (!Number.isFinite(v) || v < 0)) {
+        toast.error(`${label} inválido`);
+        return;
+      }
+    }
+
+    // Verificação de duplicados (criação ou alteração de número)
+    const { data: dup } = await supabase
+      .from("supplier_invoices")
+      .select("id")
+      .eq("supplier_id", supplierId)
+      .eq("invoice_number", invoice_number)
+      .maybeSingle();
+    if (dup && dup.id !== editingId) {
+      toast.error(`Já existe uma fatura com o nº ${invoice_number} para este fornecedor.`);
+      return;
+    }
+
     const payload = {
       supplier_id: supplierId,
-      invoice_number: form.invoice_number.trim(),
-      atcud: form.atcud || null,
+      invoice_number,
+      atcud: form.atcud?.trim() || null,
       issue_date: form.issue_date || null,
       due_date: form.due_date || null,
       payment_terms: form.payment_terms || null,
@@ -390,11 +541,61 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
           </div>
         )}
 
+        {/* Pesquisa e filtros */}
+        <div className="rounded-lg border border-border p-3 bg-muted/10 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Search className="h-4 w-4" /> Pesquisa e filtros
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+            <div className="col-span-2">
+              <Input
+                placeholder="Nº fatura"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Input
+              placeholder="ATCUD"
+              value={filterAtcud}
+              onChange={(e) => setFilterAtcud(e.target.value)}
+            />
+            <Input
+              type="date"
+              value={filterFrom}
+              onChange={(e) => setFilterFrom(e.target.value)}
+              title="Emissão de"
+            />
+            <Input
+              type="date"
+              value={filterTo}
+              onChange={(e) => setFilterTo(e.target.value)}
+              title="Emissão até"
+            />
+            <div className="grid grid-cols-2 gap-1">
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Total min"
+                value={filterMin}
+                onChange={(e) => setFilterMin(e.target.value)}
+              />
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Total máx"
+                value={filterMax}
+                onChange={(e) => setFilterMax(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="rounded-lg border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
                 <TableHead>Nº Fatura</TableHead>
+                <TableHead>ATCUD</TableHead>
                 <TableHead>Emissão</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Cliente</TableHead>
@@ -405,21 +606,24 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     A carregar...
                   </TableCell>
                 </TableRow>
-              ) : invoices.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    Sem faturas registadas.
+                    {invoices.length === 0
+                      ? "Sem faturas registadas."
+                      : "Sem resultados para os filtros aplicados."}
                   </TableCell>
                 </TableRow>
               ) : (
-                invoices.map((inv) => (
+                filtered.map((inv) => (
                   <TableRow key={inv.id}>
                     <TableCell className="font-medium">{inv.invoice_number}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{inv.atcud || "—"}</TableCell>
                     <TableCell>{inv.issue_date || "—"}</TableCell>
                     <TableCell>{inv.due_date || "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
