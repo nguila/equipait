@@ -160,6 +160,7 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       setPendingForm(null);
       setRawExtracted({});
       setPreviewDuplicate(false);
+    }
   }, [open, supplierId]);
 
   const filtered = useMemo(() => {
