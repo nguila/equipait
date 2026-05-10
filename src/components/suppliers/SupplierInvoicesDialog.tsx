@@ -585,20 +585,14 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
             fields={previewFields}
             globalSuggestions={previewSuggestions}
             duplicate={previewDuplicate}
+            onFieldChange={handlePreviewFieldChange}
+            onResetField={handleResetField}
             onCancel={() => {
-              setPreviewFields(null);
               setPendingForm(null);
-              setPreviewSuggestions([]);
+              setRawExtracted({});
               setPreviewDuplicate(false);
             }}
-            onConfirm={() => {
-              if (pendingForm) setForm(pendingForm);
-              setShowForm(true);
-              setPreviewFields(null);
-              setPendingForm(null);
-              setPreviewSuggestions([]);
-              setPreviewDuplicate(false);
-            }}
+            onConfirm={confirmPreviewAndSave}
           />
         )}
 
