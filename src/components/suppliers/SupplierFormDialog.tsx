@@ -37,7 +37,7 @@ const CATEGORIES = [
   { value: "hardware", label: "Hardware" },
   { value: "software", label: "Software" },
   { value: "redes", label: "Redes & Telecomunicações" },
-  { value: "servicos", label: "Serviços" },
+  
   { value: "consumiveis", label: "Consumíveis" },
   { value: "cloud", label: "Cloud & Hosting" },
 ];
