@@ -157,11 +157,9 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       setFilterTo("");
       setFilterMin("");
       setFilterMax("");
-      setPreviewFields(null);
       setPendingForm(null);
-      setPreviewSuggestions([]);
+      setRawExtracted({});
       setPreviewDuplicate(false);
-    }
   }, [open, supplierId]);
 
   const filtered = useMemo(() => {
