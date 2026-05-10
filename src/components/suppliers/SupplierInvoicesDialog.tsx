@@ -119,11 +119,10 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
   const [showForm, setShowForm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Preview de extração
-  const [previewFields, setPreviewFields] = useState<PreviewField[] | null>(null);
-  const [previewSuggestions, setPreviewSuggestions] = useState<string[]>([]);
-  const [previewDuplicate, setPreviewDuplicate] = useState(false);
+  // Preview de extração (edição inline em tempo real)
   const [pendingForm, setPendingForm] = useState<typeof EMPTY | null>(null);
+  const [rawExtracted, setRawExtracted] = useState<Record<string, unknown>>({});
+  const [previewDuplicate, setPreviewDuplicate] = useState(false);
 
   // Pesquisa & filtros
   const [search, setSearch] = useState("");
