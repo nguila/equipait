@@ -14,6 +14,7 @@ import {
   Globe,
   User,
   FileText,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +64,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   hardware: "Hardware",
   software: "Software",
   redes: "Redes",
-  servicos: "Serviços",
+  
   consumiveis: "Consumíveis",
   cloud: "Cloud",
 };
@@ -319,6 +320,15 @@ const FornecedoresPage = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title="Importar Fatura"
+                        onClick={() => setInvoicesFor({ id: s.id, name: s.name })}
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
