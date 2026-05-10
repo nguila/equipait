@@ -63,7 +63,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   hardware: "Hardware",
   software: "Software",
   redes: "Redes",
-  servicos: "Serviços",
+  
   consumiveis: "Consumíveis",
   cloud: "Cloud",
 };
