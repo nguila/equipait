@@ -219,18 +219,6 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       if (parsed.net_total != null && net_total == null) warnings.push("total líquido inválido");
       if (parsed.total_amount != null && total_amount == null) warnings.push("total inválido");
 
-      // Verificação de duplicados
-      let isDuplicate = false;
-      if (invoice_number) {
-        const { data: dup } = await supabase
-          .from("supplier_invoices")
-          .select("id, invoice_number")
-          .eq("supplier_id", supplierId)
-          .eq("invoice_number", invoice_number)
-          .maybeSingle();
-        if (dup) isDuplicate = true;
-      }
-
       const nextForm: typeof EMPTY = {
         invoice_number,
         atcud: (parsed.atcud ?? "").toString().trim(),
@@ -247,121 +235,12 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
         notes: "",
       };
 
-      // Construir campos do preview
-      const fields: PreviewField[] = [
-        {
-          key: "invoice_number",
-          label: "Nº Fatura",
-          raw: parsed.invoice_number,
-          value: invoice_number,
-          status: invoice_number ? (isDuplicate ? "warning" : "ok") : "missing",
-          message: isDuplicate ? "Número já existe para este fornecedor" : undefined,
-        },
-        {
-          key: "atcud",
-          label: "ATCUD",
-          raw: parsed.atcud,
-          value: nextForm.atcud,
-          status: nextForm.atcud ? "ok" : "warning",
-          message: !nextForm.atcud ? "Não detetado no PDF" : undefined,
-        },
-        {
-          key: "issue_date",
-          label: "Data Emissão",
-          raw: parsed.issue_date,
-          value: issue_date,
-          status: parsed.issue_date && !issue_date ? "warning" : issue_date ? "ok" : "missing",
-          message: parsed.issue_date && !issue_date ? "Formato não reconhecido" : undefined,
-        },
-        {
-          key: "due_date",
-          label: "Data Vencimento",
-          raw: parsed.due_date,
-          value: due_date,
-          status: parsed.due_date && !due_date ? "warning" : due_date ? "ok" : "missing",
-          message:
-            parsed.due_date && !due_date
-              ? "Formato não reconhecido"
-              : due_date && issue_date && due_date < issue_date
-              ? "Vencimento anterior à emissão"
-              : undefined,
-        },
-        {
-          key: "client_name",
-          label: "Cliente",
-          raw: parsed.client_name,
-          value: nextForm.client_name,
-          status: nextForm.client_name ? "ok" : "warning",
-        },
-        {
-          key: "client_nif",
-          label: "NIF Cliente",
-          raw: parsed.client_nif,
-          value: nextForm.client_nif,
-          status: nextForm.client_nif
-            ? /^(PT)?\s?\d{9}$/.test(String(nextForm.client_nif).replace(/\s/g, ""))
-              ? "ok"
-              : "warning"
-            : "warning",
-          message:
-            nextForm.client_nif &&
-            !/^(PT)?\s?\d{9}$/.test(String(nextForm.client_nif).replace(/\s/g, ""))
-              ? "Formato de NIF pode estar incorreto"
-              : undefined,
-        },
-        {
-          key: "net_total",
-          label: "Total Líquido",
-          raw: parsed.net_total,
-          value: net_total,
-          status: parsed.net_total != null && net_total == null ? "warning" : net_total != null ? "ok" : "missing",
-        },
-        {
-          key: "vat_total",
-          label: "Total IVA",
-          raw: parsed.vat_total,
-          value: vat_total,
-          status: parsed.vat_total != null && vat_total == null ? "warning" : vat_total != null ? "ok" : "missing",
-        },
-        {
-          key: "total_amount",
-          label: "Total",
-          raw: parsed.total_amount,
-          value: total_amount,
-          status: parsed.total_amount != null && total_amount == null ? "warning" : total_amount != null ? "ok" : "missing",
-        },
-        {
-          key: "currency",
-          label: "Moeda",
-          raw: parsed.currency,
-          value: nextForm.currency,
-          status: "ok",
-        },
-      ];
-
-      // Sugestões globais
-      const suggestions: string[] = [];
-      if (net_total != null && vat_total != null && total_amount != null) {
-        const sum = Number((net_total + vat_total).toFixed(2));
-        if (Math.abs(sum - total_amount) > 0.02) {
-          suggestions.push(
-            `Líquido (${net_total.toFixed(2)}) + IVA (${vat_total.toFixed(2)}) = ${sum.toFixed(2)} não confere com Total (${total_amount.toFixed(2)})`,
-          );
-        }
-      }
-      if (!invoice_number) suggestions.push("Preencha manualmente o número da fatura antes de gravar.");
-      if (issue_date && due_date && due_date < issue_date) {
-        suggestions.push("Verifique as datas: vencimento é anterior à emissão.");
-      }
-
+      setRawExtracted(parsed as Record<string, unknown>);
       setPendingForm(nextForm);
-      setPreviewFields(fields);
-      setPreviewSuggestions(suggestions);
-      setPreviewDuplicate(isDuplicate);
       setShowForm(false);
       setEditingId(null);
 
-      toast.success("Pré-visualização pronta. Reveja os campos destacados.");
+      toast.success("Pré-visualização pronta. Edite os campos diretamente.");
     } catch (e) {
       console.error(e);
       toast.error("Falha ao processar PDF");
@@ -370,6 +249,182 @@ const SupplierInvoicesDialog = ({ open, onOpenChange, supplierId, supplierName }
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+
+  // Verificação de duplicados em tempo real (debounced)
+  useEffect(() => {
+    if (!pendingForm || !supplierId) return;
+    const num = pendingForm.invoice_number.trim();
+    if (!num) {
+      setPreviewDuplicate(false);
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(async () => {
+      const { data: dup } = await supabase
+        .from("supplier_invoices")
+        .select("id")
+        .eq("supplier_id", supplierId)
+        .eq("invoice_number", num)
+        .maybeSingle();
+      if (!cancelled) setPreviewDuplicate(!!dup);
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [pendingForm?.invoice_number, supplierId]);
+
+  // Cálculo de campos e sugestões em tempo real
+  const previewFields: PreviewField[] | null = useMemo(() => {
+    if (!pendingForm) return null;
+    const p = pendingForm;
+    const nifClean = String(p.client_nif ?? "").replace(/\s/g, "");
+    const nifValid = /^(PT)?\d{9}$/.test(nifClean);
+    return [
+      {
+        key: "invoice_number",
+        label: "Nº Fatura",
+        raw: rawExtracted.invoice_number,
+        value: p.invoice_number,
+        status: p.invoice_number ? (previewDuplicate ? "warning" : "ok") : "missing",
+        message: previewDuplicate ? "Número já existe para este fornecedor" : undefined,
+      },
+      {
+        key: "atcud",
+        label: "ATCUD",
+        raw: rawExtracted.atcud,
+        value: p.atcud,
+        status: p.atcud ? "ok" : "warning",
+        message: !p.atcud ? "Não detetado / vazio" : undefined,
+      },
+      {
+        key: "issue_date",
+        label: "Data Emissão",
+        type: "date",
+        raw: rawExtracted.issue_date,
+        value: p.issue_date,
+        status: p.issue_date ? "ok" : "missing",
+      },
+      {
+        key: "due_date",
+        label: "Data Vencimento",
+        type: "date",
+        raw: rawExtracted.due_date,
+        value: p.due_date,
+        status: !p.due_date
+          ? "missing"
+          : p.issue_date && p.due_date < p.issue_date
+          ? "warning"
+          : "ok",
+        message:
+          p.due_date && p.issue_date && p.due_date < p.issue_date
+            ? "Vencimento anterior à emissão"
+            : undefined,
+      },
+      {
+        key: "client_name",
+        label: "Cliente",
+        raw: rawExtracted.client_name,
+        value: p.client_name,
+        status: p.client_name ? "ok" : "warning",
+      },
+      {
+        key: "client_nif",
+        label: "NIF Cliente",
+        raw: rawExtracted.client_nif,
+        value: p.client_nif,
+        status: !p.client_nif ? "warning" : nifValid ? "ok" : "warning",
+        message: p.client_nif && !nifValid ? "Formato de NIF pode estar incorreto" : undefined,
+      },
+      {
+        key: "net_total",
+        label: "Total Líquido",
+        type: "number",
+        raw: rawExtracted.net_total,
+        value: p.net_total,
+        status: p.net_total != null ? (p.net_total < 0 ? "warning" : "ok") : "missing",
+        message: p.net_total != null && p.net_total < 0 ? "Valor negativo" : undefined,
+      },
+      {
+        key: "vat_total",
+        label: "Total IVA",
+        type: "number",
+        raw: rawExtracted.vat_total,
+        value: p.vat_total,
+        status: p.vat_total != null ? (p.vat_total < 0 ? "warning" : "ok") : "missing",
+        message: p.vat_total != null && p.vat_total < 0 ? "Valor negativo" : undefined,
+      },
+      {
+        key: "total_amount",
+        label: "Total",
+        type: "number",
+        raw: rawExtracted.total_amount,
+        value: p.total_amount,
+        status: p.total_amount != null ? (p.total_amount <= 0 ? "warning" : "ok") : "missing",
+        message: p.total_amount != null && p.total_amount <= 0 ? "Total deve ser positivo" : undefined,
+      },
+      {
+        key: "currency",
+        label: "Moeda",
+        raw: rawExtracted.currency,
+        value: p.currency,
+        status: p.currency ? "ok" : "warning",
+      },
+    ];
+  }, [pendingForm, rawExtracted, previewDuplicate]);
+
+  const previewSuggestions: string[] = useMemo(() => {
+    if (!pendingForm) return [];
+    const p = pendingForm;
+    const out: string[] = [];
+    if (p.net_total != null && p.vat_total != null && p.total_amount != null) {
+      const sum = Number((p.net_total + p.vat_total).toFixed(2));
+      if (Math.abs(sum - p.total_amount) > 0.02) {
+        out.push(
+          `Líquido (${p.net_total.toFixed(2)}) + IVA (${p.vat_total.toFixed(2)}) = ${sum.toFixed(2)} não confere com Total (${p.total_amount.toFixed(2)})`,
+        );
+      }
+    }
+    if (!p.invoice_number) out.push("Preencha o número da fatura antes de gravar.");
+    if (p.issue_date && p.due_date && p.due_date < p.issue_date) {
+      out.push("Verifique as datas: vencimento é anterior à emissão.");
+    }
+    return out;
+  }, [pendingForm]);
+
+  const handlePreviewFieldChange = (key: string, value: string) => {
+    if (!pendingForm) return;
+    const numericKeys = new Set(["net_total", "vat_total", "total_amount"]);
+    let next: any = value;
+    if (numericKeys.has(key)) {
+      next = value === "" ? null : Number(value);
+      if (Number.isNaN(next)) next = null;
+    }
+    setPendingForm({ ...pendingForm, [key]: next });
+  };
+
+  const handleResetField = (key: string) => {
+    if (!pendingForm) return;
+    const raw = (rawExtracted as any)[key];
+    const numericKeys = new Set(["net_total", "vat_total", "total_amount"]);
+    const dateKeys = new Set(["issue_date", "due_date"]);
+    let value: any;
+    if (numericKeys.has(key)) value = normalizeNumber(raw);
+    else if (dateKeys.has(key)) value = normalizeDate(raw);
+    else value = raw == null ? "" : String(raw);
+    setPendingForm({ ...pendingForm, [key]: value });
+  };
+
+  const confirmPreviewAndSave = async () => {
+    if (!pendingForm) return;
+    setForm(pendingForm);
+    setPendingForm(null);
+    setRawExtracted({});
+    setPreviewDuplicate(false);
+    // Aguarda render do form e grava
+    setTimeout(() => handleSave(), 0);
+  };
+
 
   const handleSave = async () => {
     if (!supplierId || !user) return;
