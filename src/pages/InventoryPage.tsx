@@ -471,6 +471,9 @@ const InventoryPage = () => {
               <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadTemplate}>
                 <Download className="h-4 w-4" /> Template
               </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setInvoiceImportOpen(true)}>
+                <Upload className="h-4 w-4" /> Importar Fatura
+              </Button>
               <ProductFormDialog onAdd={handleAddProduct} categories={categoryNames} departments={departments} warehouses={warehouses} locations={locations} />
             </div>
           </div>
