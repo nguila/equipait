@@ -327,7 +327,7 @@ const FornecedoresPage = () => {
                         size="icon"
                         className="h-8 w-8"
                         title="Importar Fatura"
-                        onClick={() => setInvoicesFor({ id: s.id, name: s.name })}
+                        onClick={() => setImportFor({ id: s.id, name: s.name })}
                       >
                         <Upload className="h-4 w-4" />
                       </Button>
