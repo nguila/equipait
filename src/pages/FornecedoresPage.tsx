@@ -87,6 +87,7 @@ const FornecedoresPage = () => {
   const [editingSupplier, setEditingSupplier] = useState<SupplierFormData | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [invoicesFor, setInvoicesFor] = useState<{ id: string; name: string } | null>(null);
+  const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
