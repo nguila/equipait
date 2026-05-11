@@ -388,6 +388,13 @@ const FornecedoresPage = () => {
         supplierName={invoicesFor?.name ?? ""}
       />
 
+      <InvoiceImportDialog
+        open={!!importFor}
+        onOpenChange={(o) => !o && setImportFor(null)}
+        fixedSupplierId={importFor?.id ?? null}
+        fixedSupplierName={importFor?.name ?? ""}
+        onCreated={fetchSuppliers}
+      />
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
