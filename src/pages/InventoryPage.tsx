@@ -964,6 +964,12 @@ const InventoryPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <InvoiceImportDialog
+        open={invoiceImportOpen}
+        onOpenChange={setInvoiceImportOpen}
+        onCreated={fetchData}
+      />
     </div>
   );
 };
