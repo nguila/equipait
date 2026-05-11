@@ -109,6 +109,7 @@ const InventoryPage = () => {
   const [locForm, setLocForm] = useState({ name: "" });
   const [deleteLocId, setDeleteLocId] = useState<string | null>(null);
   const [imageItemId, setImageItemId] = useState<string | null>(null);
+  const [invoiceImportOpen, setInvoiceImportOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
