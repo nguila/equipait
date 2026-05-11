@@ -41,6 +41,7 @@ import SupplierFormDialog, {
   type SupplierFormData,
 } from "@/components/suppliers/SupplierFormDialog";
 import SupplierInvoicesDialog from "@/components/suppliers/SupplierInvoicesDialog";
+import InvoiceImportDialog from "@/components/suppliers/InvoiceImportDialog";
 
 interface Supplier {
   id: string;
