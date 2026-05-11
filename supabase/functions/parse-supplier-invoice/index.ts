@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You extract structured data from a supplier invoice PDF.
+const SYSTEM_PROMPT = `You extract structured data from a supplier invoice (PDF or image).
 Return ONLY a JSON object using this exact schema (no markdown, no commentary):
 {
   "invoice_number": string|null,
@@ -15,17 +15,37 @@ Return ONLY a JSON object using this exact schema (no markdown, no commentary):
   "issue_date": string|null,        // ISO YYYY-MM-DD
   "due_date": string|null,          // ISO YYYY-MM-DD
   "payment_terms": string|null,
+  "payment_method": string|null,    // e.g. "Transferência", "Multibanco", "Numerário"
   "supplier_name": string|null,
   "supplier_nif": string|null,
+  "supplier_address": string|null,
+  "supplier_email": string|null,
+  "supplier_phone": string|null,
   "client_name": string|null,
   "client_nif": string|null,
   "net_total": number|null,         // base de incidência
   "vat_total": number|null,
   "total_amount": number|null,
   "currency": string|null,          // e.g. "EUR"
-  "description": string|null        // short summary of items
+  "description": string|null,       // short summary of items
+  "items": [                         // line items detected on the invoice
+    {
+      "name": string|null,           // product / equipment name
+      "brand": string|null,
+      "model": string|null,
+      "sku": string|null,            // SKU / reference / part number
+      "serial_number": string|null,  // serial number if present
+      "quantity": number|null,
+      "unit_price": number|null,     // before VAT
+      "vat_rate": number|null,       // percentage, e.g. 23
+      "warranty_years": number|null,
+      "warranty_start": string|null, // ISO YYYY-MM-DD
+      "warranty_end": string|null    // ISO YYYY-MM-DD
+    }
+  ]
 }
-Use European number format conversion (e.g. "1 211,20" -> 1211.20).`;
+Use European number format conversion (e.g. "1 211,20" -> 1211.20).
+If a field is unknown set it to null. Always return "items" as an array (empty if no items).`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {

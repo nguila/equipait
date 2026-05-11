@@ -41,6 +41,7 @@ import SupplierFormDialog, {
   type SupplierFormData,
 } from "@/components/suppliers/SupplierFormDialog";
 import SupplierInvoicesDialog from "@/components/suppliers/SupplierInvoicesDialog";
+import InvoiceImportDialog from "@/components/suppliers/InvoiceImportDialog";
 
 interface Supplier {
   id: string;
@@ -86,6 +87,7 @@ const FornecedoresPage = () => {
   const [editingSupplier, setEditingSupplier] = useState<SupplierFormData | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [invoicesFor, setInvoicesFor] = useState<{ id: string; name: string } | null>(null);
+  const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -325,7 +327,7 @@ const FornecedoresPage = () => {
                         size="icon"
                         className="h-8 w-8"
                         title="Importar Fatura"
-                        onClick={() => setInvoicesFor({ id: s.id, name: s.name })}
+                        onClick={() => setImportFor({ id: s.id, name: s.name })}
                       >
                         <Upload className="h-4 w-4" />
                       </Button>
@@ -386,6 +388,13 @@ const FornecedoresPage = () => {
         supplierName={invoicesFor?.name ?? ""}
       />
 
+      <InvoiceImportDialog
+        open={!!importFor}
+        onOpenChange={(o) => !o && setImportFor(null)}
+        fixedSupplierId={importFor?.id ?? null}
+        fixedSupplierName={importFor?.name ?? ""}
+        onCreated={fetchSuppliers}
+      />
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>

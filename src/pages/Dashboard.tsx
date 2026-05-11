@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Loader2,
   Monitor,
-  Wrench,
+  
   Search,
   Filter,
   Bell,
@@ -99,14 +99,6 @@ const quickLinks = [
     path: "/documentos",
     color: "from-cyan-500/20 to-cyan-600/10",
     iconColor: "text-cyan-500",
-  },
-  {
-    icon: Wrench,
-    label: "Serviços",
-    description: "Serviços técnicos e manutenções",
-    path: "/servicos",
-    color: "from-blue-500/20 to-blue-600/10",
-    iconColor: "text-blue-500",
   },
   {
     icon: Shield,

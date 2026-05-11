@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, User, ImageIcon } from "lucide-react";
+import { Package, Box, ClipboardList, MapPin, BarChart3, Trash2, Download, Plus, RefreshCw, FolderOpen, Building2, Warehouse as WarehouseIcon, Edit2, Search, User, ImageIcon, Upload } from "lucide-react";
 import ImageAttachments from "@/components/shared/ImageAttachments";
 import ProductFormDialog from "@/components/inventory/ProductFormDialog";
 import StockRequestFormDialog from "@/components/inventory/StockRequestFormDialog";
 import OrdersTable from "@/components/inventory/OrdersTable";
 import ImportExportBar from "@/components/shared/ImportExportBar";
+import InvoiceImportDialog from "@/components/suppliers/InvoiceImportDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -108,6 +109,7 @@ const InventoryPage = () => {
   const [locForm, setLocForm] = useState({ name: "" });
   const [deleteLocId, setDeleteLocId] = useState<string | null>(null);
   const [imageItemId, setImageItemId] = useState<string | null>(null);
+  const [invoiceImportOpen, setInvoiceImportOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -468,6 +470,9 @@ const InventoryPage = () => {
               />
               <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadTemplate}>
                 <Download className="h-4 w-4" /> Template
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setInvoiceImportOpen(true)}>
+                <Upload className="h-4 w-4" /> Importar Fatura
               </Button>
               <ProductFormDialog onAdd={handleAddProduct} categories={categoryNames} departments={departments} warehouses={warehouses} locations={locations} />
             </div>
@@ -959,6 +964,12 @@ const InventoryPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <InvoiceImportDialog
+        open={invoiceImportOpen}
+        onOpenChange={setInvoiceImportOpen}
+        onCreated={fetchData}
+      />
     </div>
   );
 };

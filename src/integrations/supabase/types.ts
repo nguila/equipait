@@ -213,49 +213,70 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          brand: string | null
           category: string
           code: string
           created_at: string
           created_by: string
           department_id: string | null
           id: string
+          invoice_id: string | null
           location: string | null
           location_id: string | null
+          model: string | null
           name: string
+          purchase_date: string | null
           serial_number: string | null
+          sku: string | null
           status: string
+          supplier_id: string | null
+          unit_price: number | null
           updated_at: string
           user_name: string | null
           warehouse_id: string | null
         }
         Insert: {
+          brand?: string | null
           category?: string
           code: string
           created_at?: string
           created_by: string
           department_id?: string | null
           id?: string
+          invoice_id?: string | null
           location?: string | null
           location_id?: string | null
+          model?: string | null
           name: string
+          purchase_date?: string | null
           serial_number?: string | null
+          sku?: string | null
           status?: string
+          supplier_id?: string | null
+          unit_price?: number | null
           updated_at?: string
           user_name?: string | null
           warehouse_id?: string | null
         }
         Update: {
+          brand?: string | null
           category?: string
           code?: string
           created_at?: string
           created_by?: string
           department_id?: string | null
           id?: string
+          invoice_id?: string | null
           location?: string | null
           location_id?: string | null
+          model?: string | null
           name?: string
+          purchase_date?: string | null
           serial_number?: string | null
+          sku?: string | null
           status?: string
+          supplier_id?: string | null
+          unit_price?: number | null
           updated_at?: string
           user_name?: string | null
           warehouse_id?: string | null
@@ -580,6 +601,84 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_invoice_items: {
+        Row: {
+          brand: string | null
+          created_at: string
+          created_by: string
+          id: string
+          inventory_item_id: string | null
+          invoice_id: string
+          model: string | null
+          name: string
+          notes: string | null
+          quantity: number
+          serial_number: string | null
+          sku: string | null
+          unit_price: number | null
+          updated_at: string
+          vat_rate: number | null
+          warranty_end: string | null
+          warranty_start: string | null
+          warranty_years: number | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          inventory_item_id?: string | null
+          invoice_id: string
+          model?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number
+          serial_number?: string | null
+          sku?: string | null
+          unit_price?: number | null
+          updated_at?: string
+          vat_rate?: number | null
+          warranty_end?: string | null
+          warranty_start?: string | null
+          warranty_years?: number | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          inventory_item_id?: string | null
+          invoice_id?: string
+          model?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number
+          serial_number?: string | null
+          sku?: string | null
+          unit_price?: number | null
+          updated_at?: string
+          vat_rate?: number | null
+          warranty_end?: string | null
+          warranty_start?: string | null
+          warranty_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_invoice_items_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_invoices: {
         Row: {
           atcud: string | null
@@ -596,8 +695,12 @@ export type Database = {
           issue_date: string | null
           net_total: number | null
           notes: string | null
+          payment_method: string | null
           payment_terms: string | null
+          supplier_address: string | null
+          supplier_email: string | null
           supplier_id: string
+          supplier_phone: string | null
           total_amount: number | null
           updated_at: string
           vat_total: number | null
@@ -617,8 +720,12 @@ export type Database = {
           issue_date?: string | null
           net_total?: number | null
           notes?: string | null
+          payment_method?: string | null
           payment_terms?: string | null
+          supplier_address?: string | null
+          supplier_email?: string | null
           supplier_id: string
+          supplier_phone?: string | null
           total_amount?: number | null
           updated_at?: string
           vat_total?: number | null
@@ -638,8 +745,12 @@ export type Database = {
           issue_date?: string | null
           net_total?: number | null
           notes?: string | null
+          payment_method?: string | null
           payment_terms?: string | null
+          supplier_address?: string | null
+          supplier_email?: string | null
           supplier_id?: string
+          supplier_phone?: string | null
           total_amount?: number | null
           updated_at?: string
           vat_total?: number | null
@@ -1032,6 +1143,83 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      warranties: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_date: string | null
+          id: string
+          inventory_item_id: string | null
+          invoice_id: string | null
+          invoice_item_id: string | null
+          notes: string | null
+          serial_number: string | null
+          start_date: string | null
+          supplier_id: string | null
+          updated_at: string
+          years: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          invoice_id?: string | null
+          invoice_item_id?: string | null
+          notes?: string | null
+          serial_number?: string | null
+          start_date?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          years?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          invoice_id?: string | null
+          invoice_item_id?: string | null
+          notes?: string | null
+          serial_number?: string | null
+          start_date?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranties_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_invoice_item_id_fkey"
+            columns: ["invoice_item_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_invoice_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranties_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
