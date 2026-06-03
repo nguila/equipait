@@ -42,8 +42,8 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError("A password deve ter pelo menos 6 caracteres");
+    if (password.length < 8) {
+      setError("A password deve ter pelo menos 8 caracteres");
       return;
     }
 
